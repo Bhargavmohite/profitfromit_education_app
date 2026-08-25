@@ -1,0 +1,79 @@
+{
+  "project_info": {
+    "project_number": "237411900385",
+    "firebase_url": "https://profit-from-it-f7db6.firebaseio.com",
+    "project_id": "profit-from-it-f7db6",
+    "storage_bucket": "profit-from-it-f7db6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:237411900385:android:e50a7013349cdd603010a0",
+        "android_client_info": {
+          "package_name": "in.profitfromit.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "237411900385-1ls98ii1or55hlgdh0p5eivpd53k1npe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.profitfromit.android",
+            "certificate_hash": "74cd6bbc04c1e3f4f5aa0a0be1ae577e93187d47"
+          }
+        },
+        {
+          "client_id": "237411900385-5h7gglh88jcva3psveobcrt0k814g214.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.profitfromit.android",
+            "certificate_hash": "76372dd14aefbbecacabdb68168550b77917feff"
+          }
+        },
+        {
+          "client_id": "237411900385-ofed4tjilprn8hlm0eufici4bbjgveae.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.profitfromit.android",
+            "certificate_hash": "a45d9beb106bc02f7a08f6ecb2a62619113ca86b"
+          }
+        },
+        {
+          "client_id": "237411900385-q7t5mvskpdeolu558oqcl1csuk5vn853.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.profitfromit.android",
+            "certificate_hash": "54daeb6435d2276fd04f66c82e9ca197ce7a8a7f"
+          }
+        },
+        {
+          "client_id": "237411900385-2uqshnf61llh122to3uua07g5tab1uda.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWKcaG_zdIdNr3ENy1Q6LbODqkQfaXCTI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "237411900385-2uqshnf61llh122to3uua07g5tab1uda.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "237411900385-ef34bggu34toe5qohj16315ra9bk6ju3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "in.profitfromit.ios"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
