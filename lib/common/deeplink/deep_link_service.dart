@@ -23,7 +23,8 @@ class DeepLinkService {
   /// Update with your domain
   static const String allowedHost = "profitfromit.co.in";
 
-  final ValueNotifier<DeepLinkModel?> deepLinkNotifier = ValueNotifier<DeepLinkModel?>(null);
+  final ValueNotifier<DeepLinkModel?> deepLinkNotifier =
+      ValueNotifier<DeepLinkModel?>(null);
 
   DeepLinkModel? pendingDeepLink;
 
@@ -63,7 +64,9 @@ class DeepLinkService {
 
       final now = DateTime.now();
 
-      if (_lastHandledUri == uriString && _lastHandledAt != null && now.difference(_lastHandledAt!) < _dedupWindow) {
+      if (_lastHandledUri == uriString &&
+          _lastHandledAt != null &&
+          now.difference(_lastHandledAt!) < _dedupWindow) {
         debugPrint("Duplicate deep link ignored");
         return;
       }
@@ -79,7 +82,8 @@ class DeepLinkService {
         return;
       }
 
-      final segments = uri.pathSegments.where((e) => e.trim().isNotEmpty).toList();
+      final segments =
+          uri.pathSegments.where((e) => e.trim().isNotEmpty).toList();
 
       debugPrint("Segments => $segments");
 
@@ -129,17 +133,38 @@ class DeepLinkService {
 
       /// Course Lesson
       /// https://profitfromit.co.in/course/123/lesson/10
-      if (first == "course" && segments.length >= 4 && segments[2].toLowerCase() == "lesson") {
+      if (first == "course" &&
+          segments.length >= 4 &&
+          segments[2].toLowerCase() == "lesson") {
         final courseId = segments[1];
         final lessonId = segments[3];
+
         pendingDeepLink = DeepLinkModel(
           type: DeepLinkType.courseLesson,
           courseId: courseId,
           lessonId: lessonId,
         );
+
         deepLinkNotifier.value = pendingDeepLink;
         return;
       }
+
+      /// Course
+      /// https://profitfromit.co.in/course/123
+      if (first == "course" && segments.length == 2) {
+        final courseId = segments[1];
+
+        pendingDeepLink = DeepLinkModel(
+          type: DeepLinkType.course,
+          courseId: courseId,
+        );
+
+        debugPrint("Course DeepLink Stored ======> $courseId");
+
+        deepLinkNotifier.value = pendingDeepLink;
+        return;
+      }
+
       _notifyUnknown();
     } catch (e) {
       debugPrint("Parse Route Error => $e");

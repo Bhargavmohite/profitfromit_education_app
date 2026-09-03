@@ -27,11 +27,15 @@ Widget space(double height, {double width = 0}) {
   );
 }
 
-nextRoute(String page, {bool isClearBackRoutes = false, dynamic arguments}) async {
+nextRoute(String page,
+    {bool isClearBackRoutes = false, dynamic arguments}) async {
   if (isClearBackRoutes) {
-    return await Navigator.pushNamedAndRemoveUntil(navigatorKey.currentContext!, page, (route) => false, arguments: arguments);
+    return await Navigator.pushNamedAndRemoveUntil(
+        navigatorKey.currentContext!, page, (route) => false,
+        arguments: arguments);
   } else {
-    return await Navigator.pushNamed(navigatorKey.currentContext!, page, arguments: arguments);
+    return await Navigator.pushNamed(navigatorKey.currentContext!, page,
+        arguments: arguments);
   }
 }
 
@@ -62,17 +66,21 @@ baseBottomSheet({required Widget child}) async {
                   child: closeButton(AppAssets.arrowClearSvg),
                 ),
                 space(16),
-                GestureDetector(
-                  onTap: () {
-                    FocusScope.of(context).unfocus();
-                  },
-                  child: Container(
-                    width: getSize().width,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-                      color: Colors.white,
+                Flexible(
+                  child: GestureDetector(
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                    },
+                    child: Container(
+                      width: getSize().width,
+                      decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(30),
+                        ),
+                        color: Colors.white,
+                      ),
+                      child: child,
                     ),
-                    child: child,
                   ),
                 ),
               ],
@@ -115,7 +123,8 @@ notificationBaseBottomSheet({required Widget child}) async {
                     child: Container(
                       width: getSize().width,
                       decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(30)),
                         color: Colors.white,
                       ),
                       child: DraggableScrollableSheet(
@@ -196,15 +205,18 @@ Widget fadeInImage(
 
   return CachedNetworkImage(
     imageUrl: url,
-    placeholder: (context, url) => Image.asset(AppAssets.placePng, width: width.toDouble(), height: height.toDouble(), fit: BoxFit.cover),
+    placeholder: (context, url) => Image.asset(AppAssets.placePng,
+        width: width.toDouble(), height: height.toDouble(), fit: BoxFit.cover),
     width: width.toDouble(),
     height: height.toDouble(),
     fit: BoxFit.cover,
-    errorWidget: (context, url, _) => Image.asset(AppAssets.placePng, width: width.toDouble(), height: height.toDouble(), fit: BoxFit.cover),
+    errorWidget: (context, url, _) => Image.asset(AppAssets.placePng,
+        width: width.toDouble(), height: height.toDouble(), fit: BoxFit.cover),
   );
 }
 
-Widget closeButton(String icon, {Function onTap = backRoute, double? width, Color? icColor}) {
+Widget closeButton(String icon,
+    {Function onTap = backRoute, double? width, Color? icColor}) {
   return GestureDetector(
     onTap: () {
       onTap();
@@ -213,9 +225,12 @@ Widget closeButton(String icon, {Function onTap = backRoute, double? width, Colo
     child: Container(
       width: 52,
       height: 52,
-      decoration: BoxDecoration(color: Colors.white, borderRadius: borderRadius()),
+      decoration:
+          BoxDecoration(color: Colors.white, borderRadius: borderRadius()),
       alignment: Alignment.center,
-      child: SvgPicture.asset(icon, colorFilter: ColorFilter.mode(icColor ?? grey3A, BlendMode.srcIn), width: width),
+      child: SvgPicture.asset(icon,
+          colorFilter: ColorFilter.mode(icColor ?? grey3A, BlendMode.srcIn),
+          width: width),
     ),
   );
 }
@@ -245,13 +260,18 @@ EdgeInsets padding({double horizontal = 21, double vertical = 0}) {
 }
 
 Directionality directionality({required Widget child}) {
-  return Directionality(textDirection: locator<AppLanguage>().isRtl() ? TextDirection.rtl : TextDirection.ltr, child: child);
+  return Directionality(
+      textDirection: locator<AppLanguage>().isRtl()
+          ? TextDirection.rtl
+          : TextDirection.ltr,
+      child: child);
 }
 
 Future<void> openExternalBrowser(String url) async {
   try {
     final Uri uri = Uri.parse(url);
-    final bool launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final bool launched =
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched) {
       debugPrint("Could not launch $url");
     }

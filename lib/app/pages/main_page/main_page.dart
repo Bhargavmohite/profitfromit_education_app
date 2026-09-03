@@ -139,7 +139,8 @@ class _MainPageState extends State<MainPage> {
     }
 
     if (showCourseNotification) {
-      Map<String, dynamic>? retrievedMap = await AppData.getCourseNotification();
+      Map<String, dynamic>? retrievedMap =
+          await AppData.getCourseNotification();
 
       debugPrint(
         "is show Course Notification retrievedMap ===========> "
@@ -246,6 +247,29 @@ class _MainPageState extends State<MainPage> {
           break;
 
         case DeepLinkType.course:
+          final int? courseId = int.tryParse(deepLink.courseId ?? '');
+
+          if (courseId == null) {
+            return;
+          }
+
+          debugPrint(
+            "$tag Opening Course DeepLink ======> $courseId",
+          );
+
+          nextRoute(
+            SingleCoursePage.pageName,
+            arguments: [
+              courseId,
+              false,
+              null,
+              false,
+              null,
+            ],
+          );
+
+          break;
+
         case DeepLinkType.unknown:
           break;
       }
@@ -264,7 +288,8 @@ class _MainPageState extends State<MainPage> {
   // ------------------------------------------------------------
   void _addDrawerListener() {
     drawerController.addListener(() {
-      if (locator<DrawerProvider>().isOpenDrawer != drawerController.value.visible) {
+      if (locator<DrawerProvider>().isOpenDrawer !=
+          drawerController.value.visible) {
         Future.delayed(
           const Duration(milliseconds: 300),
         ).then((value) {
@@ -370,7 +395,8 @@ class _MainPageState extends State<MainPage> {
                     // UniqueKey() was forcing AdvancedDrawer to be
                     // recreated on every build.
                     // ------------------------------------------------
-                    disabledGestures: pageProvider.page == PageNames.latestEvents,
+                    disabledGestures:
+                        pageProvider.page == PageNames.latestEvents,
                     backdropColor: Colors.transparent,
                     drawer: const MainDrawer(),
                     openRatio: .6,
@@ -484,7 +510,8 @@ class _MainPageState extends State<MainPage> {
                                     bottom: 0,
                                     top: getSize().height - bottomNavHeight,
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         MainWidget.navItem(
                                           PageNames.categories,

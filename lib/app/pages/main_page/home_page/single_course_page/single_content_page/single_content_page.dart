@@ -32,6 +32,7 @@ import 'package:webinar/config/styles.dart';
 import 'package:webinar/locator.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:webinar/app/widgets/main_widget/home_widget/single_course_widget/vimeo_video_player_widget.dart';
 
 import '../../../../../../common/utils/date_formater.dart';
 import '../../../../../../common/utils/utils.dart';
@@ -846,14 +847,11 @@ class _SingleContentPageState extends State<SingleContentPage> {
                         space(20),
                         CourseVideoPlayer(singleContentData?.file ?? '', '', Constants.contentRouteObserver),
                       },
-                      if (singleContentData?.storage == 'vimeo' || singleContentData?.storage == 'youtube') ...{
-
-                        PodVideoPlayerDev(
-                          singleContentData?.file ?? '',
-                          singleContentData?.storage ?? '',
-                          Constants.contentRouteObserver
-                        ),
-                      },
+                      if (singleContentData?.storage == 'vimeo') ...{
+                              VimeoVideoPlayerWidget(
+                                singleContentData?.file ?? '',
+                              ),
+                            },
                     },
 
                     space(20),

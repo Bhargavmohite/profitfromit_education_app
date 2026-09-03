@@ -34,7 +34,8 @@ class SplashPage extends StatefulWidget {
   State<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateMixin {
+class _SplashPageState extends State<SplashPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController animationController;
   String tag = "SplashPageState";
   String token = "";
@@ -42,7 +43,8 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   void initState() {
     super.initState();
 
-    animationController = AnimationController(vsync: this, duration: const Duration(seconds: 5));
+    animationController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 5));
 
     // FlutterNativeSplash.remove();
 
@@ -50,7 +52,8 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
       animationController.forward();
 
       Timer(const Duration(seconds: 3), () async {
-        final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
+        final List<ConnectivityResult> connectivityResult =
+            await (Connectivity().checkConnectivity());
 
         if (connectivityResult.contains(ConnectivityResult.none)) {
           nextRoute(InternetConnectionPage.pageName, isClearBackRoutes: true);
@@ -77,19 +80,129 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     GuestService.config();
   }
 
+//new added
+  Future<void> _handlePendingDeepLink() async {
+    debugPrint("handlePendingDeepLink called");
+
+    final deepLink = DeepLinkService.instance.pendingDeepLink;
+
+    debugPrint("pending ======> $deepLink");
+
+    if (deepLink == null) {
+      return;
+    }
+
+    switch (deepLink.type) {
+      case DeepLinkType.blog:
+        final String? blogId = deepLink.blogId;
+
+        if (blogId == null || blogId.isEmpty) {
+          return;
+        }
+
+        try {
+          final BlogModel? blogModel =
+              await BlogService.getBlogDataById(blogId);
+
+          if (!mounted) return;
+
+          if (blogModel != null && blogModel.id != null) {
+            DeepLinkService.instance.clearPending();
+
+            nextRoute(
+              DetailsBlogPage.pageName,
+              arguments: blogModel,
+            );
+          }
+        } catch (e) {
+          debugPrint("$tag blog deep link error =====> $e");
+        }
+
+        break;
+
+      case DeepLinkType.course:
+        final int? courseId = int.tryParse(deepLink.courseId ?? '');
+
+        if (courseId == null) {
+          return;
+        }
+
+        debugPrint("Opening course ======> $courseId");
+
+        DeepLinkService.instance.clearPending();
+
+        if (!mounted) return;
+
+        nextRoute(
+          SingleCoursePage.pageName,
+          arguments: <dynamic>[
+            courseId,
+            false,
+            null,
+            false,
+            null,
+          ],
+        );
+
+        break;
+
+      case DeepLinkType.courseLesson:
+        final int? courseId = int.tryParse(deepLink.courseId ?? '');
+
+        final String? lessonId = deepLink.lessonId;
+
+        if (courseId == null || lessonId == null || lessonId.isEmpty) {
+          return;
+        }
+
+        if (token.isEmpty) {
+          nextRoute(
+            LoginPage.pageName,
+            isClearBackRoutes: true,
+          );
+          return;
+        }
+
+        DeepLinkService.instance.clearPending();
+
+        if (!mounted) return;
+
+        nextRoute(
+          SingleCoursePage.pageName,
+          arguments: <dynamic>[
+            courseId,
+            false,
+            null,
+            false,
+            lessonId,
+          ],
+        );
+
+        break;
+
+      case DeepLinkType.unknown:
+        DeepLinkService.instance.clearPending();
+        break;
+    }
+  }
+
   Future<void> _navigateToHome() async {
-    debugPrint("navigateToHome pending ======> ${DeepLinkService.instance.pendingDeepLink}");
+    debugPrint(
+      "navigateToHome pending ======> "
+      "${DeepLinkService.instance.pendingDeepLink}",
+    );
+
     nextRoute(
       MainPage.pageName,
       isClearBackRoutes: true,
     );
 
-    // Future.delayed(
-    //   const Duration(milliseconds: 700),
-    //   () {
-    //     _handlePendingDeepLink();
-    //   },
-    // );
+    Future.delayed(
+      const Duration(milliseconds: 700),
+      () {
+        _handlePendingDeepLink();
+      },
+    );
   }
 
   // Future<void> _handlePendingDeepLink() async {

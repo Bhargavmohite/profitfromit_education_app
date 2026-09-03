@@ -102,7 +102,7 @@ class ProfileModel {
       this.identityScan,
       this.certificate});
 
-  ProfileModel.fromJson(Map<String, dynamic> json, {var cashback}) {
+  ProfileModel.fromJson(Map<String, dynamic> json, {cashback}) {
 
     if(cashback != null){
       cashbackRules = <CashbackRules>[];

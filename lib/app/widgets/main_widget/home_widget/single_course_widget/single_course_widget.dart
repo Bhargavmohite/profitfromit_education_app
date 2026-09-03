@@ -1109,6 +1109,7 @@ class SingleCourseWidget {
     int supportQuality = 4;
 
     final TextEditingController descController = TextEditingController();
+
     final FocusNode descNode = FocusNode();
 
     bool isLoading = false;
@@ -1116,143 +1117,154 @@ class SingleCourseWidget {
     return await baseBottomSheet(
       child: StatefulBuilder(
         builder: (context, state) {
-          final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+          final mediaQuery = MediaQuery.of(context);
 
-          return AnimatedPadding(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-            padding: EdgeInsets.only(
-              bottom: keyboardHeight,
+          final double keyboardHeight = mediaQuery.viewInsets.bottom;
+
+          final double normalMaxHeight = mediaQuery.size.height * 0.85;
+
+          final double availableHeight = (normalMaxHeight - keyboardHeight)
+              .clamp(
+                300.0,
+                normalMaxHeight,
+              )
+              .toDouble();
+
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: availableHeight,
             ),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.85,
-              ),
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 25,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        appText.reviewTheCourse,
-                        style: style20Bold(),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 25,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      appText.reviewTheCourse,
+                      style: style20Bold(),
+                    ),
+
+                    const SizedBox(height: 5),
+
+                    Text(
+                      appText.reviewTheCourse,
+                      style: style12Regular().copyWith(
+                        color: greyA5,
                       ),
+                    ),
 
-                      const SizedBox(height: 5),
+                    const SizedBox(height: 28),
 
-                      Text(
-                        appText.reviewTheCourse,
-                        style: style12Regular().copyWith(
-                          color: greyA5,
-                        ),
-                      ),
+                    // Content Quality
+                    _reviewRatingRow(
+                      title: appText.contentQuality,
+                      rating: contentQuality,
+                      onRatingUpdate: (value) {
+                        contentQuality = value.toInt();
 
-                      const SizedBox(height: 28),
+                        state(() {});
+                      },
+                    ),
 
-                      // Content Quality
-                      _reviewRatingRow(
-                        title: appText.contentQuality,
-                        rating: contentQuality,
-                        onRatingUpdate: (value) {
-                          contentQuality = value.toInt();
-                          state(() {});
-                        },
-                      ),
+                    const SizedBox(height: 18),
 
-                      const SizedBox(height: 18),
+                    // Instructors
+                    _reviewRatingRow(
+                      title: appText.instrcutors,
+                      rating: instructorSkills,
+                      onRatingUpdate: (value) {
+                        instructorSkills = value.toInt();
 
-                      // Instructors
-                      _reviewRatingRow(
-                        title: appText.instrcutors,
-                        rating: instructorSkills,
-                        onRatingUpdate: (value) {
-                          instructorSkills = value.toInt();
-                          state(() {});
-                        },
-                      ),
+                        state(() {});
+                      },
+                    ),
 
-                      const SizedBox(height: 18),
+                    const SizedBox(height: 18),
 
-                      // Purchase Worth
-                      _reviewRatingRow(
-                        title: appText.purchaseWorth,
-                        rating: purchaseWorth,
-                        onRatingUpdate: (value) {
-                          purchaseWorth = value.toInt();
-                          state(() {});
-                        },
-                      ),
+                    // Purchase Worth
+                    _reviewRatingRow(
+                      title: appText.purchaseWorth,
+                      rating: purchaseWorth,
+                      onRatingUpdate: (value) {
+                        purchaseWorth = value.toInt();
 
-                      const SizedBox(height: 18),
+                        state(() {});
+                      },
+                    ),
 
-                      // Support Quality
-                      _reviewRatingRow(
-                        title: appText.supportQuality,
-                        rating: supportQuality,
-                        onRatingUpdate: (value) {
-                          supportQuality = value.toInt();
-                          state(() {});
-                        },
-                      ),
+                    const SizedBox(height: 18),
 
-                      const SizedBox(height: 24),
+                    // Support Quality
+                    _reviewRatingRow(
+                      title: appText.supportQuality,
+                      rating: supportQuality,
+                      onRatingUpdate: (value) {
+                        supportQuality = value.toInt();
 
-                      descriptionInput(
-                        descController,
-                        descNode,
-                        appText.description,
-                        isBorder: true,
-                      ),
+                        state(() {});
+                      },
+                    ),
 
-                      const SizedBox(height: 30),
+                    const SizedBox(height: 24),
 
-                      SizedBox(
-                        width: double.infinity,
-                        child: button(
-                          onTap: () async {
-                            if (descController.text.trim().isEmpty) {
-                              return;
-                            }
+                    descriptionInput(
+                      descController,
+                      descNode,
+                      appText.description,
+                      isBorder: true,
+                    ),
 
-                            state(() {
-                              isLoading = true;
-                            });
+                    const SizedBox(height: 30),
 
-                            final bool res = await UserService.storeReview(
-                              courseData.id!,
-                              contentQuality,
-                              instructorSkills,
-                              purchaseWorth,
-                              supportQuality,
-                              descController.text.trim(),
+                    SizedBox(
+                      width: double.infinity,
+                      child: button(
+                        onTap: () async {
+                          if (descController.text.trim().isEmpty) {
+                            return;
+                          }
+
+                          state(() {
+                            isLoading = true;
+                          });
+
+                          final bool res = await UserService.storeReview(
+                            courseData.id!,
+                            contentQuality,
+                            instructorSkills,
+                            purchaseWorth,
+                            supportQuality,
+                            descController.text.trim(),
+                          );
+
+                          state(() {
+                            isLoading = false;
+                          });
+
+                          if (res) {
+                            backRoute(
+                              arguments: res,
                             );
-
-                            state(() {
-                              isLoading = false;
-                            });
-
-                            if (res) {
-                              backRoute(arguments: res);
-                            }
-                          },
-                          width: double.infinity,
-                          height: 52,
-                          text: appText.submit,
-                          bgColor: green77(),
-                          textColor: Colors.white,
-                          isLoading: isLoading,
-                        ),
+                          }
+                        },
+                        width: double.infinity,
+                        height: 52,
+                        text: appText.submit,
+                        bgColor: green77(),
+                        textColor: Colors.white,
+                        isLoading: isLoading,
                       ),
+                    ),
 
-                      const SizedBox(height: 20),
-                    ],
-                  ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
             ),
@@ -1388,12 +1400,26 @@ class SingleCourseWidget {
 
           // share
           GestureDetector(
-            onTap: () {
+            onTap: () async {
               backRoute();
 
+              final String title = courseData.title?.trim() ?? '';
+              final String link =
+                  'https://profitfromit.co.in/course/${courseData.id}';
+
+              final String shareText =
+                  title.isNotEmpty ? '$title\n\n$link' : link;
+
               try {
-                Share.share(courseData.link ?? '');
-              } catch (e) {}
+                await Share.share(shareText);
+              } catch (e) {
+                debugPrint('COURSE SHARE ERROR: $e');
+
+                showSnackBar(
+                  ErrorEnum.error,
+                  'Unable to share course right now.',
+                );
+              }
             },
             behavior: HitTestBehavior.opaque,
             child: Row(

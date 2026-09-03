@@ -25,7 +25,7 @@ class CurrencyUtils{
   }
 
 
-  static String calculator(var price) {
+  static String calculator(price) {
     String symbol = getSymbol(userCurrency);
     double amount = (price)?.toDouble() ?? 0.0;
     return '$symbol${amount.toStringAsFixed(2)}';

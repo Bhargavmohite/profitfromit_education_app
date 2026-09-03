@@ -21,10 +21,22 @@ import '../../../common/utils/error_handler.dart';
 import '../../models/single_content_model.dart';
 
 class CourseService {
-  static Future<List<CourseModel>> getAll({required int offset, bool upcoming = false, bool free = false, bool discount = false, bool downloadable = false, String? sort, String? type, String? cat, bool reward = false, bool bundle = false, List<int>? filterOption}) async {
+  static Future<List<CourseModel>> getAll(
+      {required int offset,
+      bool upcoming = false,
+      bool free = false,
+      bool discount = false,
+      bool downloadable = false,
+      String? sort,
+      String? type,
+      String? cat,
+      bool reward = false,
+      bool bundle = false,
+      List<int>? filterOption}) async {
     List<CourseModel> data = [];
     // try{
-    String url = '${Constants.baseUrl}${bundle ? 'bundles' : 'courses'}?offset=$offset&limit=10';
+    String url =
+        '${Constants.baseUrl}${bundle ? 'bundles' : 'courses'}?offset=$offset&limit=10';
 
     if (upcoming) url += '&upcoming=1';
     if (free) url += '&free=1';
@@ -40,7 +52,8 @@ class CourseService {
         url += '&filter_option=${filterOption[i]}';
       }
     }
-    debugPrint("Get category item API data from server before API call URL =======> $url");
+    debugPrint(
+        "Get category item API data from server before API call URL =======> $url");
     Response res = await httpGet(url);
 
     var jsonRes = jsonDecode(res.body);
@@ -67,9 +80,11 @@ class CourseService {
     // }
   }
 
-  static Future<SingleCourseModel?> getOverviewCourseData(int id, bool isBundle, {bool isPrivate = false}) async {
+  static Future<SingleCourseModel?> getOverviewCourseData(int id, bool isBundle,
+      {bool isPrivate = false}) async {
     try {
-      String url = '${Constants.baseUrl}${isPrivate ? 'panel/webinars' : isBundle ? 'panel/bundles' : 'panel/webinars'}/$id';
+      String url =
+          '${Constants.baseUrl}${isPrivate ? 'panel/webinars' : isBundle ? 'panel/bundles' : 'panel/webinars'}/$id';
       print(url);
 
       Response res = await httpGet(url, isSendToken: true);
@@ -77,7 +92,8 @@ class CourseService {
       var jsonRes = jsonDecode(res.body);
 
       if (jsonRes['success'] ?? false) {
-        return SingleCourseModel.fromJson(isBundle ? jsonRes['data']['bundle'] : jsonRes['data']);
+        return SingleCourseModel.fromJson(
+            isBundle ? jsonRes['data']['bundle'] : jsonRes['data']);
       } else {
         ErrorHandler().showError(ErrorEnum.error, jsonRes, readMessage: true);
         return null;
@@ -87,9 +103,11 @@ class CourseService {
     }
   }
 
-  static Future<SingleCourseModel?> getSingleCourseData(int id, bool isBundle, {bool isPrivate = false}) async {
+  static Future<SingleCourseModel?> getSingleCourseData(int id, bool isBundle,
+      {bool isPrivate = false}) async {
     try {
-      String url = '${Constants.baseUrl}${isPrivate ? 'panel/webinars' : isBundle ? 'bundles' : 'courses'}/$id';
+      String url =
+          '${Constants.baseUrl}${isPrivate ? 'panel/webinars' : isBundle ? 'bundles' : 'courses'}/$id';
       Response res = await httpGet(url, isSendToken: true);
 
       var jsonRes = jsonDecode(res.body);
@@ -97,8 +115,13 @@ class CourseService {
       debugPrint("getContent url =======> $url");
       debugPrint("getContent response =======> ${res.body}");
 
+      debugPrint(
+        "COURSE API LINK =======> ${jsonRes['data']?['link']}",
+      );
+
       if (jsonRes['success'] ?? false) {
-        return SingleCourseModel.fromJson(isBundle ? jsonRes['data']['bundle'] : jsonRes['data']);
+        return SingleCourseModel.fromJson(
+            isBundle ? jsonRes['data']['bundle'] : jsonRes['data']);
       } else {
         ErrorHandler().showError(ErrorEnum.error, jsonRes, readMessage: true);
         return null;
@@ -240,11 +263,13 @@ class CourseService {
     }
   }
 
-  static Future<bool> reportCourse(String reason, int courseId, String message) async {
+  static Future<bool> reportCourse(
+      String reason, int courseId, String message) async {
     try {
       String url = '${Constants.baseUrl}courses/$courseId/report';
 
-      Response res = await httpPostWithToken(url, {"reason": reason, "message": message});
+      Response res =
+          await httpPostWithToken(url, {"reason": reason, "message": message});
 
       var jsonResponse = jsonDecode(res.body);
 
@@ -260,11 +285,13 @@ class CourseService {
     }
   }
 
-  static Future<bool> toggle(int courseId, String itemName, String itemId, bool status) async {
+  static Future<bool> toggle(
+      int courseId, String itemName, String itemId, bool status) async {
     try {
       String url = '${Constants.baseUrl}courses/$courseId/toggle';
 
-      Response res = await httpPostWithToken(url, {"item": itemName, "item_id": itemId, "status": status});
+      Response res = await httpPostWithToken(
+          url, {"item": itemName, "item_id": itemId, "status": status});
 
       var jsonResponse = jsonDecode(res.body);
       print(jsonResponse);
@@ -284,15 +311,18 @@ class CourseService {
     try {
       String url = '${Constants.baseUrl}panel/favorites/toggle2';
 
-      Response res = await httpPostWithToken(url, {"item": isBundle ? 'bundle' : 'webinar', "id": courseId});
+      Response res = await httpPostWithToken(
+          url, {"item": isBundle ? 'bundle' : 'webinar', "id": courseId});
 
       var jsonResponse = jsonDecode(res.body);
 
       if (jsonResponse['success']) {
-        ErrorHandler().showError(ErrorEnum.success, jsonResponse, readMessage: true);
+        ErrorHandler()
+            .showError(ErrorEnum.success, jsonResponse, readMessage: true);
         return true;
       } else {
-        ErrorHandler().showError(ErrorEnum.error, jsonResponse, readMessage: true);
+        ErrorHandler()
+            .showError(ErrorEnum.error, jsonResponse, readMessage: true);
         return false;
       }
     } catch (e) {
@@ -300,7 +330,12 @@ class CourseService {
     }
   }
 
-  static Future<(List<CourseModel> courseData, List<UserModel> usersData, List<UserModel> organizationsData)> search(String text) async {
+  static Future<
+      (
+        List<CourseModel> courseData,
+        List<UserModel> usersData,
+        List<UserModel> organizationsData
+      )> search(String text) async {
     List<CourseModel> courseData = [];
     List<UserModel> usersData = [];
     List<UserModel> organizationsData = [];
@@ -340,7 +375,8 @@ class CourseService {
     try {
       String url = '${Constants.baseUrl}courses/$courseId/content';
 
-      Response res = await httpGetWithToken(url, isRedirectingStatusCode: false);
+      Response res =
+          await httpGetWithToken(url, isRedirectingStatusCode: false);
 
       var jsonResponse = jsonDecode(res.body);
 
@@ -366,7 +402,8 @@ class CourseService {
     try {
       String url = '${Constants.baseUrl}courses/$courseId/content';
 
-      Response res = await httpGetWithToken(url, isRedirectingStatusCode: false);
+      Response res =
+          await httpGetWithToken(url, isRedirectingStatusCode: false);
 
       var jsonResponse = jsonDecode(res.body);
 
@@ -384,7 +421,8 @@ class CourseService {
   static Future<SingleContentModel?> getSingleContent(String url) async {
     try {
       debugPrint("Request url ===============> $url");
-      Response res = await httpGetWithToken(url, isRedirectingStatusCode: false);
+      Response res =
+          await httpGetWithToken(url, isRedirectingStatusCode: false);
 
       var jsonResponse = jsonDecode(res.body);
 
@@ -401,7 +439,8 @@ class CourseService {
 
   static Future<String?> getSingleContentJSON(String url) async {
     try {
-      Response res = await httpGetWithToken(url, isRedirectingStatusCode: false);
+      Response res =
+          await httpGetWithToken(url, isRedirectingStatusCode: false);
 
       var jsonResponse = jsonDecode(res.body);
 
@@ -419,7 +458,8 @@ class CourseService {
   static Future<PopupListModel?> getPopupList() async {
     try {
       String url = "${Constants.baseUrl}popup-list";
-      Response res = await httpGetWithToken(url, isRedirectingStatusCode: false);
+      Response res =
+          await httpGetWithToken(url, isRedirectingStatusCode: false);
 
       var jsonResponse = jsonDecode(res.body);
 

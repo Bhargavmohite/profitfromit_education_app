@@ -95,7 +95,7 @@ class FinancialService{
         return false;
       }
 
-    }on dio.DioException catch (e,_) {
+    }on dio.DioException catch (e) {
       showSnackBar(ErrorEnum.error, e.message);
       return false;
     }
@@ -201,7 +201,7 @@ class FinancialService{
     }
   }
 
-  static Future<bool> requestPayout(var amount)async{
+  static Future<bool> requestPayout(amount)async{
     
     try{
       String url = '${Constants.baseUrl}panel/financial/payout';
