@@ -74,17 +74,17 @@ class _RegisterPageState extends State<RegisterPage> {
 
   List<dynamic> selectRolesDuringRegistration = [];
 
-  late final GoogleSignIn _googleSignIn;
+  // late final GoogleSignIn _googleSignIn;
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   @override
   void initState() {
     super.initState();
-    _googleSignIn = GoogleSignIn.instance;
-    _googleSignIn.initialize(
-      serverClientId: "237411900385-2uqshnf61llh122to3uua07g5tab1uda.apps.googleusercontent.com",
-    );
+
     if (PublicData.apiConfigData['selectRolesDuringRegistration'] != null) {
-      selectRolesDuringRegistration = ((PublicData.apiConfigData['selectRolesDuringRegistration']) as List<dynamic>).toList();
+      selectRolesDuringRegistration = ((PublicData
+              .apiConfigData['selectRolesDuringRegistration']) as List<dynamic>)
+          .toList();
     }
 
     if ((PublicData.apiConfigData?['register_method'] ?? '') == 'email') {
@@ -96,7 +96,10 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     mailController.addListener(() {
-      if ((mailController.text.trim().isNotEmpty || phoneController.text.trim().isNotEmpty) && passwordController.text.trim().isNotEmpty && retypePasswordController.text.trim().isNotEmpty) {
+      if ((mailController.text.trim().isNotEmpty ||
+              phoneController.text.trim().isNotEmpty) &&
+          passwordController.text.trim().isNotEmpty &&
+          retypePasswordController.text.trim().isNotEmpty) {
         if (isEmptyInputs) {
           isEmptyInputs = false;
           setState(() {});
@@ -110,7 +113,10 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     phoneController.addListener(() {
-      if ((mailController.text.trim().isNotEmpty || phoneController.text.trim().isNotEmpty) && passwordController.text.trim().isNotEmpty && retypePasswordController.text.trim().isNotEmpty) {
+      if ((mailController.text.trim().isNotEmpty ||
+              phoneController.text.trim().isNotEmpty) &&
+          passwordController.text.trim().isNotEmpty &&
+          retypePasswordController.text.trim().isNotEmpty) {
         if (isEmptyInputs) {
           isEmptyInputs = false;
           setState(() {});
@@ -124,7 +130,10 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     passwordController.addListener(() {
-      if ((mailController.text.trim().isNotEmpty || phoneController.text.trim().isNotEmpty) && passwordController.text.trim().isNotEmpty && retypePasswordController.text.trim().isNotEmpty) {
+      if ((mailController.text.trim().isNotEmpty ||
+              phoneController.text.trim().isNotEmpty) &&
+          passwordController.text.trim().isNotEmpty &&
+          retypePasswordController.text.trim().isNotEmpty) {
         if (isEmptyInputs) {
           isEmptyInputs = false;
           setState(() {});
@@ -138,7 +147,10 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     retypePasswordController.addListener(() {
-      if ((mailController.text.trim().isNotEmpty || phoneController.text.trim().isNotEmpty) && passwordController.text.trim().isNotEmpty && retypePasswordController.text.trim().isNotEmpty) {
+      if ((mailController.text.trim().isNotEmpty ||
+              phoneController.text.trim().isNotEmpty) &&
+          passwordController.text.trim().isNotEmpty &&
+          retypePasswordController.text.trim().isNotEmpty) {
         if (isEmptyInputs) {
           isEmptyInputs = false;
           setState(() {});
@@ -217,7 +229,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          if (registerConfig?.showGoogleLoginButton ?? false) ...{
+                          if (registerConfig?.showGoogleLoginButton ??
+                              false) ...{
                             socialWidget(AppAssets.googleSvg, () async {
                               try {
                                 try {
@@ -225,9 +238,21 @@ class _RegisterPageState extends State<RegisterPage> {
                                 } catch (_) {}
 
                                 // 1. Authenticate with scope hint
-                                final GoogleSignInAccount user = await _googleSignIn.authenticate(
-                                  scopeHint: ['email', 'https://www.googleapis.com/auth/userinfo.profile'],
+                                final GoogleSignInAccount user = await _googleSignIn.authenticate();
+
+                                final String? idToken = user.authentication.idToken;
+
+                                debugPrint("Google user: ${user.email}");
+                                debugPrint(
+                                  "Google ID token available: ${idToken != null && idToken.isNotEmpty}",
                                 );
+
+                                if (idToken == null || idToken.isEmpty) {
+                                  debugPrint(
+                                    "Google Sign-In failed: ID token is null or empty.",
+                                  );
+                                  return;
+                                }
                                 // 2. Authorize
                                 // final GoogleSignInClientAuthorization? authorization = await user.authorizationClient.authorizeScopes([
                                 //   'email',
@@ -242,20 +267,24 @@ class _RegisterPageState extends State<RegisterPage> {
                                 setState(() => isSendingData = true);
 
                                 try {
-                                  final bool res = await AuthenticationService.google(
+                                  final bool res =
+                                      await AuthenticationService.google(
                                     user.email,
                                     // authorization.accessToken,
-                                    user.authentication.idToken ?? "",
+                                    idToken,
                                     user.displayName ?? '',
                                   );
 
                                   if (res) {
                                     try {
-                                      await FirebaseMessaging.instance.deleteToken();
+                                      await FirebaseMessaging.instance
+                                          .deleteToken();
                                     } catch (e) {
-                                      debugPrint("firebase delete token error ===============> $e");
+                                      debugPrint(
+                                          "firebase delete token error ===============> $e");
                                     }
-                                    nextRoute(MainPage.pageName, isClearBackRoutes: true);
+                                    nextRoute(MainPage.pageName,
+                                        isClearBackRoutes: true);
                                   }
                                 } catch (e, stackTrace) {
                                   debugPrint("API Error: $e");
@@ -276,27 +305,38 @@ class _RegisterPageState extends State<RegisterPage> {
                             }),
                             space(0, width: 20),
                           },
-                          if (registerConfig?.showFacebookLoginButton ?? false) ...{
+                          if (registerConfig?.showFacebookLoginButton ??
+                              false) ...{
                             socialWidget(AppAssets.facebookSvg, () async {
                               try {
-                                final LoginResult result = await FacebookAuth.instance.login(permissions: ['email']);
+                                final LoginResult result = await FacebookAuth
+                                    .instance
+                                    .login(permissions: ['email']);
 
                                 if (result.status == LoginStatus.success) {
-                                  final AccessToken accessToken = result.accessToken!;
+                                  final AccessToken accessToken =
+                                      result.accessToken!;
 
                                   setState(() {
                                     isSendingData = true;
                                   });
 
-                                  FacebookAuth.instance.getUserData().then((value) async {
+                                  FacebookAuth.instance
+                                      .getUserData()
+                                      .then((value) async {
                                     String email = value['email'];
                                     String name = value['name'] ?? '';
 
                                     try {
-                                      bool res = await AuthenticationService.facebook(email, accessToken.tokenString, name);
+                                      bool res =
+                                          await AuthenticationService.facebook(
+                                              email,
+                                              accessToken.tokenString,
+                                              name);
 
                                       if (res) {
-                                        nextRoute(MainPage.pageName, isClearBackRoutes: true);
+                                        nextRoute(MainPage.pageName,
+                                            isClearBackRoutes: true);
                                       }
                                     } catch (_) {}
 
@@ -309,45 +349,55 @@ class _RegisterPageState extends State<RegisterPage> {
                             }),
                           },
                           if (Platform.isIOS)
-                            if (registerConfig?.showAppleLoginButton ?? false) ...{
+                            if (registerConfig?.showAppleLoginButton ??
+                                false) ...{
                               space(0, width: 20),
                               socialWidget(AppAssets.appleSvg, () async {
                                 try {
-                                  debugPrint("user  clicked  =================> ");
-                                  UserCredential? credential = await signInWithApple();
+                                  debugPrint(
+                                      "user  clicked  =================> ");
+                                  UserCredential? credential =
+                                      await signInWithApple();
 
-                                  if (credential != null && credential.user != null) {
+                                  if (credential != null &&
+                                      credential.user != null) {
                                     setState(() {
                                       isSendingData = true;
                                     });
                                     try {
-                                      bool res = await AuthenticationService.apple(
+                                      bool res =
+                                          await AuthenticationService.apple(
                                         credential.user?.email ?? "",
                                         credential.user?.uid ?? "",
                                         credential.user?.displayName ?? '',
                                       );
                                       if (res) {
-
                                         fireAuthInstance.signOut();
                                         logoutFromApple();
                                         try {
-                                          await FirebaseMessaging.instance.deleteToken();
+                                          await FirebaseMessaging.instance
+                                              .deleteToken();
                                         } catch (e) {
-                                          debugPrint("firebase delete token error ===============> $e");
+                                          debugPrint(
+                                              "firebase delete token error ===============> $e");
                                         }
-                                        nextRoute(MainPage.pageName, isClearBackRoutes: true);
+                                        nextRoute(MainPage.pageName,
+                                            isClearBackRoutes: true);
                                       }
                                     } catch (e) {
-                                      debugPrint("api error to send data to server ===========> ${e.toString()}");
+                                      debugPrint(
+                                          "api error to send data to server ===========> ${e.toString()}");
                                     }
                                     setState(() {
                                       isSendingData = false;
                                     });
                                   } else {
-                                    debugPrint("user not found and login failed");
+                                    debugPrint(
+                                        "user not found and login failed");
                                   }
                                 } catch (error) {
-                                  debugPrint("error in apple signin ===========> ${error.toString()}");
+                                  debugPrint(
+                                      "error in apple signin ===========> ${error.toString()}");
                                 }
                               }),
                             }
@@ -365,13 +415,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       // account types
                       Container(
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: borderRadius()),
+                        decoration: BoxDecoration(
+                            color: Colors.white, borderRadius: borderRadius()),
                         width: getSize().width,
                         height: 52,
                         child: Row(
                           children: [
                             // student
-                            AuthWidget.accountTypeWidget(appText.student, accountType, PublicData.userRole, () {
+                            AuthWidget.accountTypeWidget(appText.student,
+                                accountType, PublicData.userRole, () {
                               setState(() {
                                 accountType = PublicData.userRole;
                               });
@@ -379,8 +431,10 @@ class _RegisterPageState extends State<RegisterPage> {
                             }),
 
                             // instructor
-                            if (selectRolesDuringRegistration.contains(PublicData.teacherRole)) ...{
-                              AuthWidget.accountTypeWidget(appText.instrcutor, accountType, PublicData.teacherRole, () {
+                            if (selectRolesDuringRegistration
+                                .contains(PublicData.teacherRole)) ...{
+                              AuthWidget.accountTypeWidget(appText.instrcutor,
+                                  accountType, PublicData.teacherRole, () {
                                 setState(() {
                                   accountType = PublicData.teacherRole;
                                 });
@@ -389,8 +443,10 @@ class _RegisterPageState extends State<RegisterPage> {
                             },
 
                             // organization
-                            if (selectRolesDuringRegistration.contains(PublicData.organizationRole)) ...{
-                              AuthWidget.accountTypeWidget(appText.organization, accountType, PublicData.organizationRole, () {
+                            if (selectRolesDuringRegistration
+                                .contains(PublicData.organizationRole)) ...{
+                              AuthWidget.accountTypeWidget(appText.organization,
+                                  accountType, PublicData.organizationRole, () {
                                 setState(() {
                                   accountType = PublicData.organizationRole;
                                 });
@@ -405,13 +461,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       if (registerConfig?.showOtherRegisterMethod != null) ...{
                         space(15),
                         Container(
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: borderRadius()),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: borderRadius()),
                             width: getSize().width,
                             height: 52,
                             child: Row(
                               children: [
                                 // email
-                                AuthWidget.accountTypeWidget(appText.email, otherRegisterMethod ?? '', 'email', () {
+                                AuthWidget.accountTypeWidget(appText.email,
+                                    otherRegisterMethod ?? '', 'email', () {
                                   setState(() {
                                     otherRegisterMethod = 'email';
                                     isPhoneNumber = false;
@@ -419,7 +478,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 }),
 
                                 // email
-                                AuthWidget.accountTypeWidget(appText.phone, otherRegisterMethod ?? '', 'phone', () {
+                                AuthWidget.accountTypeWidget(appText.phone,
+                                    otherRegisterMethod ?? '', 'phone', () {
                                   setState(() {
                                     otherRegisterMethod = 'phone';
                                     isPhoneNumber = true;
@@ -437,7 +497,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             // country code
                             GestureDetector(
                               onTap: () async {
-                                CountryCode? newData = await RegisterWidget.showCountryDialog();
+                                CountryCode? newData =
+                                    await RegisterWidget.showCountryDialog();
 
                                 if (newData != null) {
                                   countryCode = newData;
@@ -448,7 +509,9 @@ class _RegisterPageState extends State<RegisterPage> {
                               child: Container(
                                 width: 52,
                                 height: 52,
-                                decoration: BoxDecoration(color: Colors.white, borderRadius: borderRadius()),
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: borderRadius()),
                                 alignment: Alignment.center,
                                 child: ClipRRect(
                                   borderRadius: borderRadius(radius: 50),
@@ -464,27 +527,43 @@ class _RegisterPageState extends State<RegisterPage> {
 
                             space(0, width: 15),
 
-                            Expanded(child: input(phoneController, phoneNode, appText.phoneNumber))
+                            Expanded(
+                                child: input(phoneController, phoneNode,
+                                    appText.phoneNumber))
                           ],
                         )
                       } else ...{
-                        input(mailController, mailNode, appText.yourEmail, iconPathLeft: AppAssets.mailSvg, leftIconSize: 14),
+                        input(mailController, mailNode, appText.yourEmail,
+                            iconPathLeft: AppAssets.mailSvg, leftIconSize: 14),
                       },
 
                       space(16),
 
-                      input(passwordController, passwordNode, appText.password, iconPathLeft: AppAssets.passwordSvg, leftIconSize: 14, isPassword: true),
+                      input(passwordController, passwordNode, appText.password,
+                          iconPathLeft: AppAssets.passwordSvg,
+                          leftIconSize: 14,
+                          isPassword: true),
 
                       space(16),
 
-                      input(retypePasswordController, retypePasswordNode, appText.retypePassword, iconPathLeft: AppAssets.passwordSvg, leftIconSize: 14, isPassword: true),
+                      input(retypePasswordController, retypePasswordNode,
+                          appText.retypePassword,
+                          iconPathLeft: AppAssets.passwordSvg,
+                          leftIconSize: 14,
+                          isPassword: true),
 
                       isLoadingAccountType
                           ? loading()
                           : Column(
                               children: [
-                                ...List.generate(registerConfig?.formFields?.fields?.length ?? 0, (index) {
-                                  return registerConfig?.formFields?.fields?[index].getWidget() ?? const SizedBox();
+                                ...List.generate(
+                                    registerConfig
+                                            ?.formFields?.fields?.length ??
+                                        0, (index) {
+                                  return registerConfig
+                                          ?.formFields?.fields?[index]
+                                          .getWidget() ??
+                                      const SizedBox();
                                 })
                               ],
                             ),
@@ -495,62 +574,109 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: button(
                             onTap: () async {
                               if (!isEmptyInputs) {
-                                if (registerConfig?.formFields?.fields != null) {
-                                  for (var i = 0; i < (registerConfig?.formFields?.fields?.length ?? 0); i++) {
-                                    if (registerConfig?.formFields?.fields?[i].isRequired == 1 && registerConfig?.formFields?.fields?[i].userSelectedData == null) {
-                                      if (registerConfig?.formFields?.fields?[i].type != 'toggle') {
-                                        showSnackBar(ErrorEnum.alert, '${appText.pleaseReview} ${registerConfig?.formFields?.fields?[i].getTitle()}');
+                                if (registerConfig?.formFields?.fields !=
+                                    null) {
+                                  for (var i = 0;
+                                      i <
+                                          (registerConfig?.formFields?.fields
+                                                  ?.length ??
+                                              0);
+                                      i++) {
+                                    if (registerConfig?.formFields?.fields?[i]
+                                                .isRequired ==
+                                            1 &&
+                                        registerConfig?.formFields?.fields?[i]
+                                                .userSelectedData ==
+                                            null) {
+                                      if (registerConfig
+                                              ?.formFields?.fields?[i].type !=
+                                          'toggle') {
+                                        showSnackBar(ErrorEnum.alert,
+                                            '${appText.pleaseReview} ${registerConfig?.formFields?.fields?[i].getTitle()}');
                                         return;
                                       }
                                     }
                                   }
                                 }
 
-                                if (passwordController.text.trim().compareTo(retypePasswordController.text.trim()) == 0) {
+                                if (passwordController.text.trim().compareTo(
+                                        retypePasswordController.text.trim()) ==
+                                    0) {
                                   setState(() {
                                     isSendingData = true;
                                   });
 
-                                  if (registerConfig?.registerMethod == 'email') {
-                                    Map? res = await AuthenticationService.registerWithEmail(
-                                        // email
-                                        registerConfig?.registerMethod ?? '',
-                                        mailController.text.trim(),
-                                        passwordController.text.trim(),
-                                        retypePasswordController.text.trim(),
-                                        accountType,
-                                        registerConfig?.formFields?.fields);
+                                  if (registerConfig?.registerMethod ==
+                                      'email') {
+                                    Map? res = await AuthenticationService
+                                        .registerWithEmail(
+                                            // email
+                                            registerConfig?.registerMethod ??
+                                                '',
+                                            mailController.text.trim(),
+                                            passwordController.text.trim(),
+                                            retypePasswordController.text
+                                                .trim(),
+                                            accountType,
+                                            registerConfig?.formFields?.fields);
 
                                     if (res != null) {
-                                      if (res['step'] == 'stored' || res['step'] == 'go_step_2') {
-                                        nextRoute(VerifyCodePage.pageName, arguments: {
-                                          'user_id': res['user_id'],
-                                          'email': mailController.text.trim(),
-                                          'password': passwordController.text.trim(),
-                                          'retypePassword': retypePasswordController.text.trim(),
-                                        });
+                                      if (res['step'] == 'stored' ||
+                                          res['step'] == 'go_step_2') {
+                                        nextRoute(VerifyCodePage.pageName,
+                                            arguments: {
+                                              'user_id': res['user_id'],
+                                              'email':
+                                                  mailController.text.trim(),
+                                              'password': passwordController
+                                                  .text
+                                                  .trim(),
+                                              'retypePassword':
+                                                  retypePasswordController.text
+                                                      .trim(),
+                                            });
                                       } else if (res['step'] == 'go_step_3') {
-                                        nextRoute(MainPage.pageName, arguments: res['user_id']);
+                                        nextRoute(MainPage.pageName,
+                                            arguments: res['user_id']);
                                       }
                                     }
                                   } else {
-                                    Map? res = await AuthenticationService.registerWithPhone(
-                                        // mobile
-                                        registerConfig?.registerMethod ?? '',
-                                        countryCode.dialCode.toString(),
-                                        phoneController.text.trim(),
-                                        passwordController.text.trim(),
-                                        retypePasswordController.text.trim(),
-                                        accountType,
-                                        registerConfig?.formFields?.fields);
+                                    Map? res = await AuthenticationService
+                                        .registerWithPhone(
+                                            // mobile
+                                            registerConfig?.registerMethod ??
+                                                '',
+                                            countryCode.dialCode.toString(),
+                                            phoneController.text.trim(),
+                                            passwordController.text.trim(),
+                                            retypePasswordController.text
+                                                .trim(),
+                                            accountType,
+                                            registerConfig?.formFields?.fields);
 
                                     if (res != null) {
-                                      if (res['step'] == 'stored' || res['step'] == 'go_step_2') {
+                                      if (res['step'] == 'stored' ||
+                                          res['step'] == 'go_step_2') {
                                         nextRoute(VerifyCodePage.pageName,
-                                            arguments: {'user_id': res['user_id'], 'countryCode': countryCode.dialCode.toString(), 'phone': phoneController.text.trim(), 'password': passwordController.text.trim(), 'retypePassword': retypePasswordController.text.trim()});
+                                            arguments: {
+                                              'user_id': res['user_id'],
+                                              'countryCode': countryCode
+                                                  .dialCode
+                                                  .toString(),
+                                              'phone':
+                                                  phoneController.text.trim(),
+                                              'password': passwordController
+                                                  .text
+                                                  .trim(),
+                                              'retypePassword':
+                                                  retypePasswordController.text
+                                                      .trim()
+                                            });
                                       } else if (res['step'] == 'go_step_3') {
-                                        locator<PageProvider>().setPage(PageNames.home);
-                                        nextRoute(MainPage.pageName, arguments: res['user_id']);
+                                        locator<PageProvider>()
+                                            .setPage(PageNames.home);
+                                        nextRoute(MainPage.pageName,
+                                            arguments: res['user_id']);
                                       }
                                     }
                                   }
@@ -576,7 +702,12 @@ class _RegisterPageState extends State<RegisterPage> {
                       Center(
                         child: GestureDetector(
                           onTap: () {
-                            nextRoute(WebViewPage.pageName, arguments: ['${Constants.dommain}/pages/app-terms', appText.webinar, false, LoadRequestMethod.get]);
+                            nextRoute(WebViewPage.pageName, arguments: [
+                              '${Constants.dommain}/pages/app-terms',
+                              appText.webinar,
+                              false,
+                              LoadRequestMethod.get
+                            ]);
                           },
                           behavior: HitTestBehavior.opaque,
                           child: Text(
@@ -600,7 +731,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           space(0, width: 2),
                           GestureDetector(
                             onTap: () {
-                              nextRoute(LoginPage.pageName, isClearBackRoutes: true);
+                              nextRoute(LoginPage.pageName,
+                                  isClearBackRoutes: true);
                             },
                             behavior: HitTestBehavior.opaque,
                             child: Text(
@@ -662,10 +794,13 @@ class _RegisterPageState extends State<RegisterPage> {
         accessToken: appleCredential?.authorizationCode,
       );
 
-      debugPrint("appleCredential code ==========> ${appleCredential?.authorizationCode}");
+      debugPrint(
+          "appleCredential code ==========> ${appleCredential?.authorizationCode}");
       debugPrint("appleCredential email ==========> ${appleCredential?.email}");
-      debugPrint("appleCredential family name ==========> ${appleCredential?.familyName}");
-      debugPrint("appleCredential given name ==========> ${appleCredential?.givenName}");
+      debugPrint(
+          "appleCredential family name ==========> ${appleCredential?.familyName}");
+      debugPrint(
+          "appleCredential given name ==========> ${appleCredential?.givenName}");
       return await fireAuthInstance.signInWithCredential(oauthCredential!);
     } catch (e) {
       debugPrint("Error during sign in with apple =======> $e");

@@ -436,6 +436,8 @@ class _SingleContentPageState extends State<SingleContentPage> {
             progressIndicatorColor: Colors.blueAccent,
           ),
           builder: (context, player) {
+            
+
             return  Scaffold(
               appBar: appbar(
                 title: appText.courseDetails,
@@ -784,11 +786,17 @@ class _SingleContentPageState extends State<SingleContentPage> {
         appBar: appbar(
           title: appText.courseDetails,
           rightIcon: AppAssets.shareSvg,
+
           onTapRightIcon: () {
+          
             debugPrint("$tag Single course id ========> ${courseId.toString()}");
             debugPrint("$tag Single content ========> ${content?.toJson()}");
             debugPrint("$tag Single Content Data =============> ${singleContentData!.toJson()}");
+         
             String link = "https://profitfromit.co.in/course/$courseId/lesson/${singleContentData!.id}";
+         
+         
+         
             if(Platform.isIOS) {
               shareBlog(
                 context,

@@ -47,6 +47,14 @@
           }
         },
         {
+          "client_id": "237411900385-sr8lcjijj01s9ecrp1oa34pe7l9rl6sg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.profitfromit.android",
+            "certificate_hash": "c0a5cc3c5d81521aed2cba08d60bf77a75606eab"
+          }
+        },
+        {
           "client_id": "237411900385-2uqshnf61llh122to3uua07g5tab1uda.apps.googleusercontent.com",
           "client_type": 3
         }

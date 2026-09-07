@@ -60,15 +60,12 @@ class _LoginPageState extends State<LoginPage> {
 
   CountryCode countryCode = CountryCode(code: "IN", dialCode: "+91", flagUri: "${AppAssets.flags}in.png", name: "India");
 
-  late final GoogleSignIn _googleSignIn;
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   @override
   void initState() {
     super.initState();
-    _googleSignIn = GoogleSignIn.instance;
-    _googleSignIn.initialize(
-      serverClientId: "237411900385-2uqshnf61llh122to3uua07g5tab1uda.apps.googleusercontent.com",
-    );
+   
     if ((PublicData.apiConfigData?['register_method'] ?? '') == 'email') {
       isPhoneNumber = false;
       otherRegisterMethod = 'email';
@@ -160,47 +157,73 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       if (PublicData.apiConfigData?['show_google_login_button'] ?? false) ...{
                         socialWidget(AppAssets.googleSvg, () async {
+                            debugPrint("======================================");
+                          debugPrint("GOOGLE BUTTON CLICKED");
+                          debugPrint("======================================");
+
                           try {
                             try {
-                              await _googleSignIn.signOut();
-                            } catch (_) {}
+                              debugPrint("GOOGLE: Signing out old session...");
 
-                            // 1. Authenticate with scope hint
-                            final GoogleSignInAccount user = await _googleSignIn.authenticate(
-                              scopeHint: ['email', 'https://www.googleapis.com/auth/userinfo.profile'],
+                              await _googleSignIn.signOut();
+
+                              debugPrint("GOOGLE: Old session cleared");
+                            } catch (e) {
+                              debugPrint("GOOGLE: SignOut error: $e");
+                            }
+
+                            debugPrint("GOOGLE: Calling authenticate NOW");
+
+                            final GoogleSignInAccount user = await _googleSignIn.authenticate();
+
+                            debugPrint(
+                              "GOOGLE: Account selected: ${user.email}",
                             );
-                            // 2. Authorize
-                            // final GoogleSignInClientAuthorization? authorization = await user.authorizationClient.authorizeScopes([
-                            //   'email',
-                            //   'https://www.googleapis.com/auth/userinfo.profile',
-                            // ]);
-                            //
-                            // if (authorization == null) {
-                            //   debugPrint("Google authorization cancelled by user.");
-                            //   return;
-                            // }
+
+                            final String? idToken = user.authentication.idToken;
+                            
+                            debugPrint(
+                              "Google ID token available: ${idToken != null && idToken.isNotEmpty}",
+                            );
+
+                            if (idToken == null || idToken.isEmpty) {
+                              debugPrint(
+                                "Google Sign-In failed: ID token is null or empty.",
+                              );
+                              return;
+                            }
 
                             setState(() => isSendingData = true);
 
                             try {
-                              final bool res = await AuthenticationService.google(
+                              final bool res =
+                                  await AuthenticationService.google(
                                 user.email,
-                                // authorization.accessToken,
-                                user.authentication.idToken ?? "",
+                                idToken,
                                 user.displayName ?? '',
                               );
-                              debugPrint("api response from server =================> $res");
+
+                              debugPrint(
+                                "Google backend response =================> $res",
+                              );
+
                               if (res) {
                                 try {
-                                  await FirebaseMessaging.instance.deleteToken();
+                                  await FirebaseMessaging.instance
+                                      .deleteToken();
                                 } catch (e) {
-                                  debugPrint("firebase delete token error ===============> $e");
+                                  debugPrint(
+                                    "firebase delete token error ===============> $e",
+                                  );
                                 }
 
-                                nextRoute(MainPage.pageName, isClearBackRoutes: true);
+                                nextRoute(
+                                  MainPage.pageName,
+                                  isClearBackRoutes: true,
+                                );
                               }
                             } catch (e, stackTrace) {
-                              debugPrint("API Error: $e");
+                              debugPrint("Google API Error: $e");
                               debugPrintStack(stackTrace: stackTrace);
                             } finally {
                               if (mounted) {

@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 // import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
@@ -109,6 +110,14 @@ void main() async {
   tz.initializeTimeZones();
 
   await Firebase.initializeApp();
+
+  await GoogleSignIn.instance.initialize(
+    serverClientId:
+        "237411900385-2uqshnf61llh122to3uua07g5tab1uda.apps.googleusercontent.com",
+  );
+
+  debugPrint("GOOGLE SIGN-IN INITIALIZED");
+
   try {
     await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;

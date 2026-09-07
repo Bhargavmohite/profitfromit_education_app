@@ -286,33 +286,34 @@ class _MainPageState extends State<MainPage> {
   // IMPORTANT:
   // This is called only once from initState().
   // ------------------------------------------------------------
-  void _addDrawerListener() {
-    drawerController.addListener(() {
-      if (locator<DrawerProvider>().isOpenDrawer !=
-          drawerController.value.visible) {
-        Future.delayed(
-          const Duration(milliseconds: 300),
-        ).then((value) {
-          if (mounted) {
-            locator<DrawerProvider>().setDrawerState(
-              drawerController.value.visible,
-            );
-          }
-        });
-      }
-    });
+void _addDrawerListener() {
+    drawerController.addListener(_onDrawerChanged);
   }
 
-  @override
-  void dispose() {
+  void _onDrawerChanged() {
+    if (locator<DrawerProvider>().isOpenDrawer !=
+        drawerController.value.visible) {
+      Future.delayed(
+        const Duration(milliseconds: 300),
+      ).then((value) {
+        if (mounted) {
+          locator<DrawerProvider>().setDrawerState(
+            drawerController.value.visible,
+          );
+        }
+      });
+    }
+  }
+
+@override
+void dispose() {
     DeepLinkService.instance.deepLinkNotifier.removeListener(
       _handleDeepLink,
     );
 
-    // Controller is created in initState(),
-    // therefore it should be disposed here.
-    drawerController.dispose();
-
+    // Do NOT dispose drawerController here.
+    // It is a global controller from object_instance.dart.
+    drawerController.removeListener(_onDrawerChanged);
     super.dispose();
   }
 

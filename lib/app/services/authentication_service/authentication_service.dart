@@ -23,7 +23,8 @@ class AuthenticationService{
         }
       );
 
-      print(res.body);
+      log("Google callback status code: ${res.statusCode}");
+      log("Google callback response: ${res.body}");
 
       if(res.statusCode == 200){
         await AppData.saveAccessToken(jsonDecode(res.body)['data']['token']);
@@ -34,6 +35,8 @@ class AuthenticationService{
       }
 
     }catch(e){
+       log("Google callback exception: $e");
+      log("Google callback stackTrace: $StackTrace");
       return false;
     }
   }

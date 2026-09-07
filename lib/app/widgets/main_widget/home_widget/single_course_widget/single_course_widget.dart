@@ -1280,6 +1280,7 @@ class SingleCourseWidget {
         child: Padding(
       padding: padding(),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           space(25),

@@ -998,7 +998,7 @@ packages:
     source: hosted
     version: "7.2.0"
   google_sign_in_android:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: google_sign_in_android
       sha256: "5ec98ab35387c68c0050495bb211bd88375873723a80fae7c2e9266ea0bdd8bb"
