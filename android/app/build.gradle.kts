@@ -49,23 +49,34 @@ android {
         versionName = flutter.versionName
     }
 
-    signingConfigs {
+signingConfigs {
+    if (keystoreProperties.isNotEmpty()) {
         create("release") {
             keyAlias = keystoreProperties["keyAlias"] as String?
             keyPassword = keystoreProperties["keyPassword"] as String?
-            storeFile = keystoreProperties["storeFile"]?.let { file(it as String) }
-            storePassword = keystoreProperties["storePassword"] as String?
+            storeFile =
+                keystoreProperties["storeFile"]?.let { file(it as String) }
+            storePassword =
+                keystoreProperties["storePassword"] as String?
         }
+    }
+}
+
+buildTypes {
+    getByName("debug") {
+        signingConfig = signingConfigs.getByName("debug")
     }
 
-    buildTypes {
-        getByName("debug") {
-            signingConfig = signingConfigs.getByName("debug")
-        }
-        getByName("release") {
-            signingConfig = signingConfigs.getByName("release")
-        }
+    getByName("release") {
+        signingConfig =
+            if (keystoreProperties.isNotEmpty()) {
+                signingConfigs.getByName("release")
+            } else {
+                // LOCAL TESTING ONLY
+                signingConfigs.getByName("debug")
+            }
     }
+}
 }
 
 flutter {
