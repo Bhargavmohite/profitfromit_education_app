@@ -46,3 +46,16 @@ app.*.map.json
 /android/app/release
 
 *.hprof
+
+# Android signing / private keys
+android/key.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+
+# Old/private signing container
+android/app/Profit_From_It
+
+# Local signing report
+android/signing.txt
