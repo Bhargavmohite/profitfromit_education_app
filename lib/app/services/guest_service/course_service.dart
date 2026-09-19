@@ -21,63 +21,121 @@ import '../../../common/utils/error_handler.dart';
 import '../../models/single_content_model.dart';
 
 class CourseService {
-  static Future<List<CourseModel>> getAll(
-      {required int offset,
-      bool upcoming = false,
-      bool free = false,
-      bool discount = false,
-      bool downloadable = false,
-      String? sort,
-      String? type,
-      String? cat,
-      bool reward = false,
-      bool bundle = false,
-      List<int>? filterOption}) async {
-    List<CourseModel> data = [];
-    // try{
-    String url =
-        '${Constants.baseUrl}${bundle ? 'bundles' : 'courses'}?offset=$offset&limit=10';
+ static Future<List<CourseModel>> getAll({
+    required int offset,
+    bool upcoming = false,
+    bool free = false,
+    bool discount = false,
+    bool downloadable = false,
+    String? sort,
+    String? type,
+    String? cat,
+    bool reward = false,
+    bool bundle = false,
+    List<int>? filterOption,
+  }) async {
+    final List<CourseModel> data = [];
 
-    if (upcoming) url += '&upcoming=1';
-    if (free) url += '&free=1';
-    if (discount) url += '&discount=1';
-    if (downloadable) url += '&downloadable=1';
-    if (reward) url += '&reward=1';
+    try {
+      String url = '${Constants.baseUrl}${bundle ? 'bundles' : 'courses'}'
+          '?offset=$offset&limit=10';
 
-    if (sort != null) url += '&sort=$sort';
-    if (cat != null) url += '&cat=$cat';
-
-    if (filterOption != null && filterOption.isNotEmpty) {
-      for (int i = 0; i < filterOption.length; i++) {
-        url += '&filter_option=${filterOption[i]}';
-      }
-    }
-    debugPrint(
-        "Get category item API data from server before API call URL =======> $url");
-    Response res = await httpGet(url);
-
-    var jsonRes = jsonDecode(res.body);
-
-    if (jsonRes['success'] ?? false) {
-      if (bundle) {
-        jsonRes['data']['bundles'].forEach((json) {
-          data.add(CourseModel.fromJson(json));
-        });
-      } else {
-        jsonRes['data'].forEach((json) {
-          data.add(CourseModel.fromJson(json));
-        });
+      if (upcoming) {
+        url += '&upcoming=1';
       }
 
-      log('course count : ${data.length}');
+      if (free) {
+        url += '&free=1';
+      }
+
+      if (discount) {
+        url += '&discount=1';
+      }
+
+      if (downloadable) {
+        url += '&downloadable=1';
+      }
+
+      if (reward) {
+        url += '&reward=1';
+      }
+
+      if (sort != null) {
+        url += '&sort=$sort';
+      }
+
+      if (cat != null) {
+        url += '&cat=$cat';
+      }
+
+      if (filterOption != null && filterOption.isNotEmpty) {
+        for (final int option in filterOption) {
+          url += '&filter_option=$option';
+        }
+      }
+
+      debugPrint(
+        'Get category item API data from server before API call URL =======> $url',
+      );
+
+      final Response res = await httpGet(
+        url,
+      ).timeout(
+        const Duration(seconds: 30),
+      );
+
+      final dynamic jsonRes = jsonDecode(res.body);
+
+      if (jsonRes['success'] ?? false) {
+        if (bundle) {
+          final dynamic bundles = jsonRes['data']?['bundles'];
+
+          if (bundles is List) {
+            for (final dynamic json in bundles) {
+              data.add(CourseModel.fromJson(json));
+            }
+          }
+        } else {
+          final dynamic courses = jsonRes['data'];
+
+          if (courses is List) {
+            for (final dynamic json in courses) {
+              data.add(CourseModel.fromJson(json));
+            }
+          }
+        }
+
+        log('course count : ${data.length}');
+      }
+
       return data;
-    } else {
+    } on SocketException catch (e, stackTrace) {
+      debugPrint('COURSE NETWORK ERROR ======> $e');
+      debugPrintStack(stackTrace: stackTrace);
+
+      return data;
+    } on ClientException catch (e, stackTrace) {
+      debugPrint('COURSE HTTP CLIENT ERROR ======> $e');
+      debugPrintStack(stackTrace: stackTrace);
+
+      return data;
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('COURSE TIMEOUT ERROR ======> $e');
+      debugPrintStack(stackTrace: stackTrace);
+
+      return data;
+    } on FormatException catch (e, stackTrace) {
+      debugPrint('COURSE JSON FORMAT ERROR ======> $e');
+      debugPrintStack(stackTrace: stackTrace);
+
+      return data;
+    } catch (e, stackTrace) {
+      debugPrint('COURSE GET ALL UNKNOWN ERROR ======> $e');
+      debugPrintStack(stackTrace: stackTrace);
+
       return data;
     }
-
-    // }catch(e){
-    //   return data;
-    // }
+    
   }
 
   static Future<SingleCourseModel?> getOverviewCourseData(int id, bool isBundle,
