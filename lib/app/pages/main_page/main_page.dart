@@ -9,6 +9,7 @@ import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:webinar/app/models/blog_model.dart';
 import 'package:webinar/app/pages/main_page/home_page/notification_page.dart';
+import 'package:webinar/app/pages/main_page/home_page/events_page/events_page.dart';
 import 'package:webinar/app/pages/main_page/home_page/single_course_page/single_course_page.dart';
 import 'package:webinar/app/providers/drawer_provider.dart';
 import 'package:webinar/app/providers/page_provider.dart';
@@ -269,6 +270,23 @@ class _MainPageState extends State<MainPage> {
           );
 
           break;
+        case DeepLinkType.event:
+          final String? eventSlug = deepLink.eventSlug;
+
+          if (eventSlug == null || eventSlug.isEmpty) {
+            return;
+          }
+
+          debugPrint(
+            "$tag Opening Event DeepLink ======> $eventSlug",
+          );
+
+          nextRoute(
+            EventsPage.pageName,
+            isClearBackRoutes: false,
+          );
+
+          break;
 
         case DeepLinkType.unknown:
           break;
@@ -286,7 +304,7 @@ class _MainPageState extends State<MainPage> {
   // IMPORTANT:
   // This is called only once from initState().
   // ------------------------------------------------------------
-void _addDrawerListener() {
+  void _addDrawerListener() {
     drawerController.addListener(_onDrawerChanged);
   }
 
@@ -305,8 +323,8 @@ void _addDrawerListener() {
     }
   }
 
-@override
-void dispose() {
+  @override
+  void dispose() {
     DeepLinkService.instance.deepLinkNotifier.removeListener(
       _handleDeepLink,
     );

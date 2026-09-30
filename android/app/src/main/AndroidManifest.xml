@@ -110,6 +110,7 @@
                 <data android:host="profitfromit.co.in" />
                 <data android:pathPrefix="/blog/" />
                 <data android:pathPrefix="/course/" />
+                <data android:pathPrefix="/event/" />
             </intent-filter>
             <intent-filter>
                 <action android:name="FLUTTER_NOTIFICATION_CLICK"/>

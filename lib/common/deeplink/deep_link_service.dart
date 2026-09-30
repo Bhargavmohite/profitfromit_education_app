@@ -116,20 +116,20 @@ class DeepLinkService {
         return;
       }
 
-      /// Course
-      /// https://profitfromit.co.in/course/123
-      // if (first == "course" && segments.length >= 2) {
-      //   final courseId = segments[1];
-      //
-      //   pendingDeepLink = DeepLinkModel(
-      //     type: DeepLinkType.course,
-      //     courseId: courseId,
-      //   );
-      //
-      //   deepLinkNotifier.value = pendingDeepLink;
-      //
-      //   return;
-      // }
+      /// Event
+      /// https://profitfromit.co.in/event/q1-fy27-market-playbook
+      if (first == "event" && segments.length >= 2) {
+        final eventSlug = segments.sublist(1).join('/');
+
+        pendingDeepLink = DeepLinkModel(
+          type: DeepLinkType.event,
+          eventSlug: eventSlug,
+        );
+
+        debugPrint("Event DeepLink Stored ======> $eventSlug");
+        deepLinkNotifier.value = pendingDeepLink;
+        return;
+      }
 
       /// Course Lesson
       /// https://profitfromit.co.in/course/123/lesson/10

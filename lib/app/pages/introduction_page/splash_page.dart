@@ -11,6 +11,7 @@ import 'package:webinar/app/models/blog_model.dart';
 import 'package:webinar/app/pages/authentication_page/login_page.dart';
 import 'package:webinar/app/pages/introduction_page/intro_page.dart';
 import 'package:webinar/app/pages/main_page/blog_page/details_blog_page.dart';
+import 'package:webinar/app/pages/main_page/home_page/events_page/events_page.dart';
 import 'package:webinar/app/pages/main_page/home_page/single_course_page/single_course_page.dart';
 import 'package:webinar/app/pages/main_page/main_page.dart';
 import 'package:webinar/app/pages/offline_page/internet_connection_page.dart';
@@ -176,6 +177,26 @@ class _SplashPageState extends State<SplashPage>
             false,
             lessonId,
           ],
+        );
+
+        break;
+
+      case DeepLinkType.event:
+        final String? eventSlug = deepLink.eventSlug;
+
+        if (eventSlug == null || eventSlug.isEmpty) {
+          DeepLinkService.instance.clearPending();
+          return;
+        }
+
+        debugPrint("Opening event ======> $eventSlug");
+
+        DeepLinkService.instance.clearPending();
+
+        if (!mounted) return;
+
+        nextRoute(
+          EventsPage.pageName,
         );
 
         break;

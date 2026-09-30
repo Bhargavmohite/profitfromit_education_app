@@ -67,8 +67,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   bool isLoadingFreeListData = false;
   List<CourseModel> freeListData = [];
 
-  bool isLoadingBundleData = false;
-  List<CourseModel> bundleData = [];
+  // Latest Bundles disabled on Home Page.
+  // bool isLoadingBundleData = false;
+  // List<CourseModel> bundleData = [];
 
   @override
   void initState() {
@@ -76,7 +77,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     getToken();
 
-    appBarController = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
+    appBarController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 200));
     appBarAnimation = Tween<double>(
       begin: 150 + MediaQuery.of(navigatorKey.currentContext!).viewPadding.top,
       end: 80 + MediaQuery.of(navigatorKey.currentContext!).viewPadding.top,
@@ -103,7 +105,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         if (AppData.canShowFinalizeSheet) {
           AppData.canShowFinalizeSheet = false;
           // finalize signup
-          HomeWidget.showFinalizeRegister((ModalRoute.of(context)!.settings.arguments as int)).then((value) {
+          HomeWidget.showFinalizeRegister(
+                  (ModalRoute.of(context)!.settings.arguments as int))
+              .then((value) {
             if (value) {
               getToken();
             }
@@ -117,7 +121,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void getData() {
     isLoadingFeaturedListData = true;
     isLoadingNewsetListData = true;
-    isLoadingBundleData = true;
+    // Latest Bundles disabled on Home Page.
+    // isLoadingBundleData = true;
     isLoadingBestRatedListData = true;
     isLoadingBestSellingListData = true;
     isLoadingDiscountListData = true;
@@ -131,13 +136,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       });
     });
 
-    CourseService.getAll(offset: 0, bundle: true).then((value) {
-      if (!mounted) return;
-      setState(() {
-        isLoadingBundleData = false;
-        bundleData = value;
-      });
-    });
+    // Latest Bundles disabled on Home Page.
+    // CourseService.getAll(offset: 0, bundle: true).then((value) {
+    //   if (!mounted) return;
+    //   setState(() {
+    //     isLoadingBundleData = false;
+    //     bundleData = value;
+    //   });
+    // });
 
     CourseService.getAll(offset: 0, sort: 'newest').then((value) {
       if (!mounted) return;
@@ -222,15 +228,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AppLanguageProvider>(builder: (context, languageProvider, _) {
-      return directionality(child: Consumer<DrawerProvider>(builder: (context, drawerProvider, _) {
+    return Consumer<AppLanguageProvider>(
+        builder: (context, languageProvider, _) {
+      return directionality(child:
+          Consumer<DrawerProvider>(builder: (context, drawerProvider, _) {
         return ClipRRect(
-          borderRadius: borderRadius(radius: drawerProvider.isOpenDrawer ? 20 : 0),
+          borderRadius:
+              borderRadius(radius: drawerProvider.isOpenDrawer ? 20 : 0),
           child: Scaffold(
             body: Column(
               children: [
                 // app bar
-                HomeWidget.homeAppBar(appBarController, appBarAnimation, token, searchController, searchNode, name),
+                HomeWidget.homeAppBar(appBarController, appBarAnimation, token,
+                    searchController, searchNode, name),
 
                 // body
                 Expanded(
@@ -244,23 +254,33 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           // Featured Classes
                           Column(
                             children: [
-                              if (featuredListData != null && (featuredListData.isNotEmpty || isLoadingFeaturedListData)) ...{
-                                HomeWidget.titleAndMore(appText.featuredClasses, isViewAll: false),
+                              if (featuredListData != null &&
+                                  (featuredListData.isNotEmpty ||
+                                      isLoadingFeaturedListData)) ...{
+                                HomeWidget.titleAndMore(appText.featuredClasses,
+                                    isViewAll: false),
                                 SizedBox(
                                   width: getSize().width,
                                   height: 215,
                                   child: PageView(
                                     controller: sliderPageController,
                                     onPageChanged: (value) async {
-                                      await Future.delayed(const Duration(milliseconds: 500));
+                                      await Future.delayed(
+                                          const Duration(milliseconds: 500));
 
                                       setState(() {
                                         currentSliderIndex = value;
                                       });
                                     },
                                     physics: const BouncingScrollPhysics(),
-                                    children: List.generate(isLoadingFeaturedListData ? 1 : featuredListData.length, (index) {
-                                      return isLoadingFeaturedListData ? courseSliderItemShimmer() : courseSliderItem(featuredListData[index]);
+                                    children: List.generate(
+                                        isLoadingFeaturedListData
+                                            ? 1
+                                            : featuredListData.length, (index) {
+                                      return isLoadingFeaturedListData
+                                          ? courseSliderItemShimmer()
+                                          : courseSliderItem(
+                                              featuredListData[index]);
                                     }),
                                   ),
                                 ),
@@ -274,13 +294,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      ...List.generate(featuredListData.length, (index) {
+                                      ...List.generate(featuredListData.length,
+                                          (index) {
                                         return AnimatedContainer(
-                                          duration: const Duration(milliseconds: 200),
-                                          width: currentSliderIndex == index ? 16 : 7,
+                                          duration:
+                                              const Duration(milliseconds: 200),
+                                          width: currentSliderIndex == index
+                                              ? 16
+                                              : 7,
                                           height: 7,
                                           margin: padding(horizontal: 2),
-                                          decoration: BoxDecoration(color: green77(), borderRadius: borderRadius()),
+                                          decoration: BoxDecoration(
+                                              color: green77(),
+                                              borderRadius: borderRadius()),
                                         );
                                       }),
                                     ],
@@ -291,8 +317,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                           // Newest Classes
                           newestClass(),
-                          // Bundle
-                          bundle(),
+                          // Latest Bundles disabled on Home Page.
+                          // bundle(),
                           // Best Rated
                           bestRated(),
                           /* Image Slider
@@ -371,7 +397,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget newestClass() {
-    if (newsetListData != null && (newsetListData.isNotEmpty || isLoadingNewsetListData)) {
+    if (newsetListData != null &&
+        (newsetListData.isNotEmpty || isLoadingNewsetListData)) {
       return Column(
         children: [
           HomeWidget.titleAndMore(appText.newestClasses, onTapViewAll: () {
@@ -386,8 +413,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               padding: padding(),
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: List.generate(isLoadingNewsetListData ? 3 : newsetListData.length, (index) {
-                  return isLoadingNewsetListData ? courseItemShimmer() : courseItem(newsetListData[index], isFree: false, token: token);
+                children: List.generate(
+                    isLoadingNewsetListData ? 3 : newsetListData.length,
+                    (index) {
+                  return isLoadingNewsetListData
+                      ? courseItemShimmer()
+                      : courseItem(newsetListData[index],
+                          isFree: false, token: token);
                 }),
               ),
             ),
@@ -399,37 +431,43 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
   }
 
-  Widget bundle() {
-    if ((isLoadingBundleData || bundleData.isNotEmpty) && bundleData != null) {
-      return Column(
-        children: [
-          HomeWidget.titleAndMore(appText.latestBundles, onTapViewAll: () {
-            locator<FilterCourseProvider>().clearFilter();
-            locator<FilterCourseProvider>().bundleCourse = true;
-            nextRoute(FilterCategoryPage.pageName);
-          }),
-          SizedBox(
-            width: getSize().width,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: padding(),
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(isLoadingBundleData ? 3 : bundleData.length, (index) {
-                  return isLoadingBundleData ? courseItemShimmer() : courseItem(bundleData[index], isFree: false, token: token);
-                }),
-              ),
-            ),
-          )
-        ],
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
+  // Latest Bundles disabled on Home Page.
+  // Uncomment this method together with the bundle state, API call, and
+  // bundle() widget call above if this section is needed again.
+  // Widget bundle() {
+  //   if ((isLoadingBundleData || bundleData.isNotEmpty) && bundleData != null) {
+  //     return Column(
+  //       children: [
+  //         HomeWidget.titleAndMore(appText.latestBundles, onTapViewAll: () {
+  //           locator<FilterCourseProvider>().clearFilter();
+  //           locator<FilterCourseProvider>().bundleCourse = true;
+  //           nextRoute(FilterCategoryPage.pageName);
+  //         }),
+  //         SizedBox(
+  //           width: getSize().width,
+  //           child: SingleChildScrollView(
+  //             physics: const BouncingScrollPhysics(),
+  //             padding: padding(),
+  //             scrollDirection: Axis.horizontal,
+  //             child: Row(
+  //               children: List.generate(isLoadingBundleData ? 3 : bundleData.length, (index) {
+  //                 return isLoadingBundleData
+  //                     ? courseItemShimmer()
+  //                     : courseItem(bundleData[index], isFree: false, token: token);
+  //               }),
+  //             ),
+  //           ),
+  //         )
+  //       ],
+  //     );
+  //   } else {
+  //     return const SizedBox.shrink();
+  //   }
+  // }
 
   Widget bestRated() {
-    if ((isLoadingBestRatedListData || bestRatedListData.isNotEmpty) && bestRatedListData != null) {
+    if ((isLoadingBestRatedListData || bestRatedListData.isNotEmpty) &&
+        bestRatedListData != null) {
       return Column(
         children: [
           HomeWidget.titleAndMore(appText.bestRated, onTapViewAll: () {
@@ -444,8 +482,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               padding: padding(),
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: List.generate(isLoadingBestRatedListData ? 3 : bestRatedListData.length, (index) {
-                  return isLoadingBestRatedListData ? courseItemShimmer() : courseItem(bestRatedListData[index], isFree: false, token: token);
+                children: List.generate(
+                    isLoadingBestRatedListData ? 3 : bestRatedListData.length,
+                    (index) {
+                  return isLoadingBestRatedListData
+                      ? courseItemShimmer()
+                      : courseItem(bestRatedListData[index],
+                          isFree: false, token: token);
                 }),
               ),
             ),
@@ -505,7 +548,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget bestSelling() {
-    if ((isLoadingBestSellingListData || bestSellingListData.isNotEmpty) && bestSellingListData != null) {
+    if ((isLoadingBestSellingListData || bestSellingListData.isNotEmpty) &&
+        bestSellingListData != null) {
       return Column(
         children: [
           HomeWidget.titleAndMore(appText.bestSelling, onTapViewAll: () {
@@ -520,8 +564,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               padding: padding(),
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: List.generate(isLoadingBestSellingListData ? 3 : bestSellingListData.length, (index) {
-                  return isLoadingBestSellingListData ? courseItemShimmer() : courseItem(bestSellingListData[index], isFree: false, token: token);
+                children: List.generate(
+                    isLoadingBestSellingListData
+                        ? 3
+                        : bestSellingListData.length, (index) {
+                  return isLoadingBestSellingListData
+                      ? courseItemShimmer()
+                      : courseItem(bestSellingListData[index],
+                          isFree: false, token: token);
                 }),
               ),
             ),
@@ -534,7 +584,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget discountedClasses() {
-    if ((isLoadingDiscountListData || discountListData.isNotEmpty) && discountListData != null) {
+    if ((isLoadingDiscountListData || discountListData.isNotEmpty) &&
+        discountListData != null) {
       return Column(
         children: [
           HomeWidget.titleAndMore(appText.discountedClasses, onTapViewAll: () {
@@ -549,8 +600,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               padding: padding(),
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: List.generate(isLoadingDiscountListData ? 3 : discountListData.length, (index) {
-                  return isLoadingDiscountListData ? courseItemShimmer() : courseItem(discountListData[index], isFree: false, token: token);
+                children: List.generate(
+                    isLoadingDiscountListData ? 3 : discountListData.length,
+                    (index) {
+                  return isLoadingDiscountListData
+                      ? courseItemShimmer()
+                      : courseItem(discountListData[index],
+                          isFree: false, token: token);
                 }),
               ),
             ),
@@ -563,7 +619,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget freeClasses() {
-    if ((isLoadingFreeListData || freeListData.isNotEmpty) && freeListData != null) {
+    if ((isLoadingFreeListData || freeListData.isNotEmpty) &&
+        freeListData != null) {
       return Column(
         children: [
           HomeWidget.titleAndMore(appText.freeClasses, onTapViewAll: () {
@@ -578,8 +635,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               padding: padding(),
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: List.generate(isLoadingFreeListData ? 3 : freeListData.length, (index) {
-                  return isLoadingFreeListData ? courseItemShimmer() : courseItem(freeListData[index], token: token);
+                children: List.generate(
+                    isLoadingFreeListData ? 3 : freeListData.length, (index) {
+                  return isLoadingFreeListData
+                      ? courseItemShimmer()
+                      : courseItem(freeListData[index], token: token);
                 }),
               ),
             ),

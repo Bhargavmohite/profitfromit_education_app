@@ -98,7 +98,9 @@ class _MainDrawerState extends State<MainDrawer> {
                                         ? Container(
                                             width: 65,
                                             height: 65,
-                                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                                            decoration: const BoxDecoration(
+                                                color: Colors.white,
+                                                shape: BoxShape.circle),
                                             child: Image.asset(
                                               AppAssets.icLauncherRound,
                                               width: 65,
@@ -109,8 +111,13 @@ class _MainDrawerState extends State<MainDrawer> {
                                             userProiver.profile?.avatar ?? '',
                                             width: 65,
                                             height: 65,
-                                            errorBuilder: (context, error, stackTrace) {
-                                              return Image.asset(AppAssets.placePng, width: 65, height: 65, fit: BoxFit.cover);
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Image.asset(
+                                                  AppAssets.placePng,
+                                                  width: 65,
+                                                  height: 65,
+                                                  fit: BoxFit.cover);
                                             },
                                             fit: BoxFit.cover,
                                           ),
@@ -127,7 +134,8 @@ class _MainDrawerState extends State<MainDrawer> {
                                           color: Colors.white,
                                         ),
                                         alignment: Alignment.center,
-                                        child: SvgPicture.asset(AppAssets.settingSvg),
+                                        child: SvgPicture.asset(
+                                            AppAssets.settingSvg),
                                       ),
                                     )
                                   }
@@ -138,13 +146,16 @@ class _MainDrawerState extends State<MainDrawer> {
                             // name
                             Text(
                               userProiver.profile?.fullName ?? appText.webinar,
-                              style: style16Bold().copyWith(color: Colors.white),
+                              style:
+                                  style16Bold().copyWith(color: Colors.white),
                             ),
                             space(3),
                             Container(
                               width: 25,
                               height: 3,
-                              decoration: BoxDecoration(color: Colors.white, borderRadius: borderRadius()),
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: borderRadius()),
                             )
                           ],
                         ),
@@ -158,13 +169,15 @@ class _MainDrawerState extends State<MainDrawer> {
                           space(15),
                           //home
                           menuItem(appText.home, AppAssets.homeSvg, () {
-                            if (locator<PageProvider>().page != PageNames.home) {
+                            if (locator<PageProvider>().page !=
+                                PageNames.home) {
                               locator<PageProvider>().setPage(PageNames.home);
                             }
                             drawerController.hideDrawer();
                           }),
                           //dashboard
-                          menuItem(appText.dashboard, AppAssets.dashboardSvg, () {
+                          menuItem(appText.dashboard, AppAssets.dashboardSvg,
+                              () {
                             drawerController.hideDrawer();
                             if (hasAccess(canRedirect: true)) {
                               nextRoute(DashboardPage.pageName);
@@ -174,8 +187,10 @@ class _MainDrawerState extends State<MainDrawer> {
                           //use courses
                           menuItem(appText.classes, AppAssets.classesSvg, () {
                             if (hasAccess(canRedirect: true)) {
-                              if (locator<PageProvider>().page != PageNames.myClasses) {
-                                locator<PageProvider>().setPage(PageNames.myClasses);
+                              if (locator<PageProvider>().page !=
+                                  PageNames.myClasses) {
+                                locator<PageProvider>()
+                                    .setPage(PageNames.myClasses);
                               }
 
                               drawerController.hideDrawer();
@@ -188,7 +203,9 @@ class _MainDrawerState extends State<MainDrawer> {
                             }
                           }),
                           //blog
-                          menuItem(appText.assignments, AppAssets.assignmentsSvg, () {
+                          menuItem(
+                              appText.assignments, AppAssets.assignmentsSvg,
+                              () {
                             if (hasAccess(canRedirect: true)) {
                               nextRoute(AssignmentsPage.pageName);
                             }
@@ -200,21 +217,24 @@ class _MainDrawerState extends State<MainDrawer> {
                             }
                           }),
                           //certificates
-                          menuItem(appText.certificates, AppAssets.certificatesSvg, () {
+                          menuItem(
+                              appText.certificates, AppAssets.certificatesSvg,
+                              () {
                             if (hasAccess(canRedirect: true)) {
                               nextRoute(CertificatesPage.pageName);
                             }
                           }),
 
                           //favrouites
-                          menuItem(appText.favorites, AppAssets.favoritesSvg, () {
+                          menuItem(appText.favorites, AppAssets.favoritesSvg,
+                              () {
                             if (hasAccess(canRedirect: true)) {
                               nextRoute(FavoritesPage.pageName);
                             }
                           }),
-                          //products
-                          menuItemPng("Products", AppAssets.productPng, () {
-                            if(hasAccess(canRedirect: true)){
+                          //book
+                          menuItemIcon("Book", Icons.menu_book_rounded, () {
+                            if (hasAccess(canRedirect: true)) {
                               drawerController.hideDrawer();
                               nextRoute(ProductsPage.pageName);
                             }
@@ -232,7 +252,8 @@ class _MainDrawerState extends State<MainDrawer> {
                             }
                           }),
                           //financial
-                          menuItem(appText.financial, AppAssets.financialSvg, () {
+                          menuItem(appText.financial, AppAssets.financialSvg,
+                              () {
                             if (hasAccess(canRedirect: true)) {
                               nextRoute(FinancialPage.pageName);
                             }
@@ -288,8 +309,20 @@ class _MainDrawerState extends State<MainDrawer> {
                                     ),
                                     space(0, width: 6),
                                     Text(
-                                      locator<AppLanguage>().appLanguagesData[locator<AppLanguage>().appLanguagesData.indexWhere((element) => element.code!.toLowerCase() == locator<AppLanguage>().currentLanguage.toLowerCase())].name ?? '',
-                                      style: style12Regular().copyWith(color: Colors.white),
+                                      locator<AppLanguage>()
+                                              .appLanguagesData[
+                                                  locator<AppLanguage>()
+                                                      .appLanguagesData
+                                                      .indexWhere((element) =>
+                                                          element.code!
+                                                              .toLowerCase() ==
+                                                          locator<AppLanguage>()
+                                                              .currentLanguage
+                                                              .toLowerCase())]
+                                              .name ??
+                                          '',
+                                      style: style12Regular()
+                                          .copyWith(color: Colors.white),
                                     ),
                                     space(0, width: 6),
                                     Icon(
@@ -315,16 +348,19 @@ class _MainDrawerState extends State<MainDrawer> {
 
                                     // logout
                                     UserService.logout();
-                                    await Future.delayed(const Duration(milliseconds: 200));
+                                    await Future.delayed(
+                                        const Duration(milliseconds: 200));
 
                                     AppData.saveAccessToken('');
                                     AppDataBase.clearBox();
 
                                     locator<UserProvider>().clearAll();
-                                    locator<AppLanguageProvider>().changeState();
+                                    locator<AppLanguageProvider>()
+                                        .changeState();
                                   } else {
                                     AppData.saveAccessToken('');
-                                    nextRoute(LoginPage.pageName, isClearBackRoutes: true);
+                                    nextRoute(LoginPage.pageName,
+                                        isClearBackRoutes: true);
                                   }
                                 },
                                 behavior: HitTestBehavior.opaque,
@@ -333,8 +369,11 @@ class _MainDrawerState extends State<MainDrawer> {
                                   width: 45,
                                   child: Center(
                                     child: Text(
-                                      token.isNotEmpty ? appText.logOut : appText.login,
-                                      style: style12Regular().copyWith(color: Colors.white, height: .8),
+                                      token.isNotEmpty
+                                          ? appText.logOut
+                                          : appText.login,
+                                      style: style12Regular().copyWith(
+                                          color: Colors.white, height: .8),
                                     ),
                                   ),
                                 ),
@@ -356,17 +395,22 @@ class _MainDrawerState extends State<MainDrawer> {
                                 Container(
                                   width: 21,
                                   height: 21,
-                                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: .2), borderRadius: borderRadius(radius: 5)),
+                                  decoration: BoxDecoration(
+                                      color: Colors.black.withValues(alpha: .2),
+                                      borderRadius: borderRadius(radius: 5)),
                                   alignment: Alignment.center,
                                   child: Text(
-                                    CurrencyUtils.getSymbol(CurrencyUtils.userCurrency),
-                                    style: style12Regular().copyWith(color: Colors.white, height: 1),
+                                    CurrencyUtils.getSymbol(
+                                        CurrencyUtils.userCurrency),
+                                    style: style12Regular().copyWith(
+                                        color: Colors.white, height: 1),
                                   ),
                                 ),
                                 space(0, width: 6),
                                 Text(
                                   CurrencyUtils.userCurrency,
-                                  style: style12Regular().copyWith(color: Colors.white),
+                                  style: style12Regular()
+                                      .copyWith(color: Colors.white),
                                 ),
                                 space(0, width: 6),
                                 Icon(
@@ -409,6 +453,32 @@ class _MainDrawerState extends State<MainDrawer> {
           children: [
             SvgPicture.asset(
               iconPath,
+            ),
+            space(0, width: 8),
+            Text(
+              name,
+              style: style16Regular().copyWith(color: Colors.white),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget menuItemIcon(String name, IconData icon, Function onTap) {
+    return Container(
+      width: getSize().width,
+      margin: const EdgeInsets.only(bottom: 20),
+      child: GestureDetector(
+        onTap: () {
+          onTap();
+        },
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 22,
+              color: Colors.white,
             ),
             space(0, width: 8),
             Text(
