@@ -304,36 +304,49 @@ class _BookCard extends StatelessWidget {
                       const SizedBox(height: 13),
                       const Divider(height: 1, color: Color(0xFFE4E7EC)),
                       const SizedBox(height: 12),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Expanded(
-                            child: Wrap(
-                              spacing: 7,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: <Widget>[
-                                Text(
+                      LayoutBuilder(
+                        builder: (
+                          BuildContext context,
+                          BoxConstraints constraints,
+                        ) {
+                          final bool compact = constraints.maxWidth < 220;
+
+                          final Widget priceWidget = Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Flexible(
+                                child: Text(
                                   _money(book.price),
+                                  maxLines: 1,
+                                  softWrap: false,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w900,
                                     color: Color(0xFF064E3B),
                                   ),
                                 ),
-                                if (book.oldPrice != null)
-                                  Text(
+                              ),
+                              if (book.oldPrice != null) ...<Widget>[
+                                const SizedBox(width: 7),
+                                Flexible(
+                                  child: Text(
                                     _money(book.oldPrice!),
+                                    maxLines: 1,
+                                    softWrap: false,
+                                    overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
                                       color: Color(0xFF98A2B3),
                                       fontSize: 11,
                                       decoration: TextDecoration.lineThrough,
                                     ),
                                   ),
+                                ),
                               ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
+                            ],
+                          );
+
+                          final Widget detailsButton = Container(
                             height: 40,
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             decoration: BoxDecoration(
@@ -343,9 +356,11 @@ class _BookCard extends StatelessWidget {
                             alignment: Alignment.center,
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
                                 Text(
                                   'View Details',
+                                  maxLines: 1,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,
@@ -360,8 +375,31 @@ class _BookCard extends StatelessWidget {
                                 ),
                               ],
                             ),
-                          ),
-                        ],
+                          );
+
+                          if (compact) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                priceWidget,
+                                const SizedBox(height: 10),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: detailsButton,
+                                ),
+                              ],
+                            );
+                          }
+
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              Expanded(child: priceWidget),
+                              const SizedBox(width: 8),
+                              detailsButton,
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),

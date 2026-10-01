@@ -14,319 +14,289 @@ import '../../../common/enums/error_enum.dart';
 import '../../../common/utils/constants.dart';
 import '../../../common/utils/http_handler.dart';
 
-class CartService{
-
-
-  static Future<CartModel?> getCart()async{
+class CartService {
+  static Future<CartModel?> getCart() async {
     try {
       String url = '${Constants.baseUrl}panel/cart/list';
-      Response res = await httpGetWithToken(url, isRedirectingStatusCode: false);
+      Response res =
+          await httpGetWithToken(url, isRedirectingStatusCode: false);
       var jsonResponse = jsonDecode(res.body);
       debugPrint("get cart response ==========> ${res.body}");
-      if(jsonResponse['success']) {
-        locator<UserProvider>().setCartData(CartModel.fromJson(jsonResponse['data']?['cart'] ?? {}));
+      if (jsonResponse['success']) {
+        locator<UserProvider>().setCartData(
+            CartModel.fromJson(jsonResponse['data']?['cart'] ?? {}));
         return CartModel.fromJson(jsonResponse['data']?['cart'] ?? {});
       } else {
-        ErrorHandler().showError(ErrorEnum.error, jsonResponse, readMessage: true);
+        ErrorHandler()
+            .showError(ErrorEnum.error, jsonResponse, readMessage: true);
         return null;
       }
-    } catch(e) {
+    } catch (e) {
       debugPrint("get cart response ==========> error");
       debugPrint("get cart response ==========> ${e.toString()}");
       return null;
     }
   }
 
-  static Future<String?> webCheckout()async{
-    try{
+  static Future<String?> webCheckout() async {
+    try {
       String url = '${Constants.baseUrl}panel/cart/web_checkout';
 
+      Response res =
+          await httpPostWithToken(url, {}, isRedirectingStatusCode: false);
 
-      Response res = await httpPostWithToken(
-        url,   
-        {},
-        isRedirectingStatusCode: false
-      );
-      
       var jsonResponse = jsonDecode(res.body);
-      
-      
-      if(jsonResponse['success']){
+
+      if (jsonResponse['success']) {
         return jsonResponse['data']['link'];
-      }else{
-        ErrorHandler().showError(ErrorEnum.error, jsonResponse, readMessage: true);
+      } else {
+        ErrorHandler()
+            .showError(ErrorEnum.error, jsonResponse, readMessage: true);
         return null;
       }
-
-    }catch(e){
+    } catch (e) {
       return null;
     }
   }
 
-  static Future<String?> webCheckoutV2()async{
-    try{
+  static Future<String?> webCheckoutV2() async {
+    try {
       String url = '${Constants.baseUrl}panel/cart/web_checkout_v2';
 
-
-      Response res = await httpPostWithToken(
-          url,
-          {},
-          isRedirectingStatusCode: false
-      );
+      Response res =
+          await httpPostWithToken(url, {}, isRedirectingStatusCode: false);
       debugPrint("response from checkout api v2 ==========> ${res.body}");
       var jsonResponse = jsonDecode(res.body);
-      debugPrint("response from checkout api v2 jsonResponse ==========> $jsonResponse");
-      if(jsonResponse['success']){
+      debugPrint(
+          "response from checkout api v2 jsonResponse ==========> $jsonResponse");
+      if (jsonResponse['success']) {
         return jsonResponse['data']['link'];
-      }else{
-        ErrorHandler().showError(ErrorEnum.error, jsonResponse, readMessage: true);
+      } else {
+        ErrorHandler()
+            .showError(ErrorEnum.error, jsonResponse, readMessage: true);
         return null;
       }
-
-    }catch(e){
+    } catch (e) {
       return null;
     }
   }
 
-  static Future validateCoupon(String coupon)async{
-    try{
+  static Future validateCoupon(String coupon) async {
+    try {
       String url = '${Constants.baseUrl}panel/cart/coupon/validate';
 
+      Response res = await httpPostWithToken(url, {"coupon": coupon},
+          isRedirectingStatusCode: false);
 
-      Response res = await httpPostWithToken(
-        url,   
-        {
-          "coupon" : coupon
-        },
-        isRedirectingStatusCode: false
-      );
-      
       var jsonResponse = jsonDecode(res.body);
-      
-      if(jsonResponse['success']){
-        
+
+      if (jsonResponse['success']) {
         return {
-          'amount' : Amounts.fromJson(jsonResponse['data']['amounts']),
-          'discount_id' : jsonResponse['data']['discount']['id']
+          'amount': Amounts.fromJson(jsonResponse['data']['amounts']),
+          'discount_id': jsonResponse['data']['discount']['id']
         };
-      }else{
-        ErrorHandler().showError(ErrorEnum.error, jsonResponse, readMessage: true);
+      } else {
+        ErrorHandler()
+            .showError(ErrorEnum.error, jsonResponse, readMessage: true);
         return null;
       }
-
-    }catch(e){
+    } catch (e) {
       return null;
     }
   }
-    
-  
-  static Future<bool> store(int courseId,int ticketId)async{
-    try{
+
+  static Future<bool> store(int courseId, int ticketId) async {
+    try {
       String url = '${Constants.baseUrl}panel/cart/store';
 
+      Response res = await httpPostWithToken(url,
+          {"webinar_id": courseId.toString(), "ticket_id": ticketId.toString()},
+          isRedirectingStatusCode: false);
 
-      Response res = await httpPostWithToken(
-        url,   
-        {
-          "webinar_id" : courseId.toString(),
-          "ticket_id" : ticketId.toString()
-        },
-        isRedirectingStatusCode: false
-      );
-      
       var jsonResponse = jsonDecode(res.body);
-      
-      if(jsonResponse['success']){
+
+      if (jsonResponse['success']) {
         getCart();
         showSnackBar(ErrorEnum.success, appText.successAddToCartDesc);
         return true;
-      }else{
-        ErrorHandler().showError(ErrorEnum.error, jsonResponse, readMessage: true);
+      } else {
+        ErrorHandler()
+            .showError(ErrorEnum.error, jsonResponse, readMessage: true);
         return false;
       }
-
-    }catch(e){
+    } catch (e) {
       return false;
     }
   }
-  
-  
-  static Future<dynamic> payRequest(int gatewayId,int orderId)async{
-    try{
+
+  static Future<dynamic> payRequest(int gatewayId, int orderId) async {
+    try {
       String url = '${Constants.baseUrl}panel/payments/request';
-      
 
+      Response res = await httpPostWithToken(url,
+          {"gateway_id": gatewayId.toString(), "order_id": orderId.toString()},
+          isRedirectingStatusCode: false);
 
-      Response res = await httpPostWithToken(
-        url,   
-        {
-          "gateway_id" : gatewayId.toString(),
-          "order_id" : orderId.toString()
-        },
-        isRedirectingStatusCode: false
-      );
-      
       var jsonResponse;
-      try{
+      try {
         jsonResponse = jsonDecode(res.body.toString());
-      }catch(e){}
+      } catch (e) {}
 
       // print(res.statusCode);
       print(res.body);
-      
-      if(jsonResponse?['success'] ?? true){
+
+      if (jsonResponse?['success'] ?? true) {
         return res.body;
-      }else{
+      } else {
         ErrorHandler().showError(ErrorEnum.error, jsonResponse);
         return null;
       }
-
-    }catch(e){
+    } catch (e) {
       return null;
     }
   }
-  
-  static Future<bool> credit(int orderId)async{
-    try{
+
+  static Future<bool> credit(int orderId) async {
+    try {
       String url = '${Constants.baseUrl}panel/payments/credit';
 
-
       Response res = await httpPostWithToken(
-        url,   
-        {
-          "order_id" : orderId.toString(),
-        },
-        isRedirectingStatusCode: false
-      );
-      
+          url,
+          {
+            "order_id": orderId.toString(),
+          },
+          isRedirectingStatusCode: false);
+
       var jsonResponse = jsonDecode(res.body);
-      
-      if(jsonResponse['success']){
+
+      if (jsonResponse['success']) {
         return true;
-      }else{
-        ErrorHandler().showError(ErrorEnum.error, jsonResponse, readMessage: true);
+      } else {
+        ErrorHandler()
+            .showError(ErrorEnum.error, jsonResponse, readMessage: true);
         return false;
       }
-
-    }catch(e){
+    } catch (e) {
       return false;
     }
   }
-    
-  
-  static Future<bool> subscribeApplay(int courseId)async{
-    try{
+
+  static Future<bool> subscribeApplay(int courseId) async {
+    try {
       String url = '${Constants.baseUrl}panel/subscribe/apply';
 
-
       Response res = await httpPostWithToken(
-        url,   
-        {
-          "webinar_id" : courseId.toString(),
-        },
-        isRedirectingStatusCode: false
-      );
-      
+          url,
+          {
+            "webinar_id": courseId.toString(),
+          },
+          isRedirectingStatusCode: false);
+
       var jsonResponse = jsonDecode(res.body);
-      
-      if(jsonResponse['success']){
+
+      if (jsonResponse['success']) {
         return true;
-      }else{
-        ErrorHandler().showError(ErrorEnum.error, jsonResponse, readMessage: true);
+      } else {
+        ErrorHandler()
+            .showError(ErrorEnum.error, jsonResponse, readMessage: true);
         return false;
       }
-
-    }catch(e){
+    } catch (e) {
       return false;
     }
   }
-    
-  
-  static Future<bool> add(String itemId, String itemName, String? specifications) async {
-    try{
+
+  static Future<bool> add(
+      String itemId, String itemName, String? specifications) async {
+    try {
       String url = '${Constants.baseUrl}panel/cart';
 
+      final String safeItemName =
+          itemName.trim().isNotEmpty ? itemName.trim() : 'product';
+      final String safeSpecifications = specifications ?? '';
 
       Response res = await httpPostWithToken(
-        url,   
+        url,
         {
-          "item_id" : itemId,
-          "item_name" : itemName,
-          "specifications" : specifications,
-          "quantity" : "1"
+          "item_id": itemId,
+          "item_name": safeItemName,
+          "specifications": safeSpecifications,
+          "quantity": "1"
         },
-        isRedirectingStatusCode: false
+        isRedirectingStatusCode: false,
       );
-      
-      var jsonResponse = jsonDecode(res.body);
-      print(jsonResponse);
-      
-      if(jsonResponse['success']){
-        getCart();
+
+      debugPrint(
+        "add cart response ==========> status: ${res.statusCode} | body: ${res.body}",
+      );
+
+      final dynamic jsonResponse = jsonDecode(res.body);
+
+      if (jsonResponse['success'] == true) {
+        // Wait until the cart/provider is refreshed so the basket count and
+        // Cart page update immediately after adding the book.
+        await getCart();
         showSnackBar(ErrorEnum.success, appText.successAddToCartDesc);
         return true;
-      }else{
-        ErrorHandler().showError(ErrorEnum.error, jsonResponse, readMessage: true);
+      } else {
+        ErrorHandler().showError(
+          ErrorEnum.error,
+          jsonResponse,
+          readMessage: true,
+        );
         return false;
       }
-
-    }catch(e){
+    } catch (e, stackTrace) {
+      debugPrint("add cart response ==========> error: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      showSnackBar(
+        ErrorEnum.error,
+        'Unable to add item to cart',
+        desc: 'Please try again.',
+      );
       return false;
     }
   }
-    
 
-  static Future<bool> deleteCourse(int id)async{
-    try{
+  static Future<bool> deleteCourse(int id) async {
+    try {
       String url = '${Constants.baseUrl}panel/cart/$id';
 
+      Response res =
+          await httpDeleteWithToken(url, {}, isRedirectingStatusCode: false);
 
-      Response res = await httpDeleteWithToken(
-        url,   
-        {},
-        isRedirectingStatusCode: false
-      );
-      
       var jsonResponse = jsonDecode(res.body);
-      
-      if(jsonResponse['success']){
-        
+
+      if (jsonResponse['success']) {
         return true;
-      }else{
-        ErrorHandler().showError(ErrorEnum.error, jsonResponse, readMessage: true);
+      } else {
+        ErrorHandler()
+            .showError(ErrorEnum.error, jsonResponse, readMessage: true);
         return false;
       }
-
-    }catch(e){
+    } catch (e) {
       return false;
     }
   }
-    
 
-  static Future<CheckoutModel?> checkout()async{
-    try{
+  static Future<CheckoutModel?> checkout() async {
+    try {
       String url = '${Constants.baseUrl}panel/cart/checkout';
 
+      Response res =
+          await httpPostWithToken(url, {}, isRedirectingStatusCode: false);
 
-      Response res = await httpPostWithToken(
-        url,   
-        {},
-        isRedirectingStatusCode: false
-      );
-      
       var jsonResponse = jsonDecode(res.body);
-      
-      if(jsonResponse['success']){
-        
+
+      if (jsonResponse['success']) {
         return CheckoutModel.fromJson(jsonResponse['data']);
-      }else{
-        ErrorHandler().showError(ErrorEnum.error, jsonResponse, readMessage: true);
+      } else {
+        ErrorHandler()
+            .showError(ErrorEnum.error, jsonResponse, readMessage: true);
         return null;
       }
-
-    }catch(e){
+    } catch (e) {
       return null;
     }
   }
-    
 }

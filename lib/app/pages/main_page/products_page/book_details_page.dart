@@ -56,14 +56,19 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
     setState(() => _isAddingToCart = true);
 
-    await CartService.add(
-      _book.id,
-      _book.cartItemName.isNotEmpty ? _book.cartItemName : 'product',
-      null,
-    );
-
-    if (!mounted) return;
-    setState(() => _isAddingToCart = false);
+    try {
+      // Books are Store products. Use the same cart payload shape as the
+      // existing working cart flow: item_name=product and specifications=''.
+      await CartService.add(
+        _book.id,
+        'product',
+        '',
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isAddingToCart = false);
+      }
+    }
   }
 
   @override
@@ -164,7 +169,8 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   child: _bookDetails(),
                 ),
               ],
-              if (_book.freeShipping || _book.shippingText.isNotEmpty) ...<Widget>[
+              if (_book.freeShipping ||
+                  _book.shippingText.isNotEmpty) ...<Widget>[
                 const SizedBox(height: 14),
                 _shippingCard(),
               ],
@@ -172,6 +178,8 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                 const SizedBox(height: 14),
                 _faqCard(),
               ],
+              const SizedBox(height: 14),
+              _pincodeDeliveryCard(),
             ],
           ),
         ),
@@ -217,9 +225,8 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
               SizedBox(
                 width: 180,
                 child: FilledButton.icon(
-                  onPressed: _book.inStock && !_isAddingToCart
-                      ? _addToCart
-                      : null,
+                  onPressed:
+                      _book.inStock && !_isAddingToCart ? _addToCart : null,
                   icon: _isAddingToCart
                       ? const SizedBox(
                           width: 16,
@@ -334,9 +341,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(9),
                         border: Border.all(
-                          color: selected
-                              ? green77()
-                              : const Color(0xFFD0D5DD),
+                          color: selected ? green77() : const Color(0xFFD0D5DD),
                           width: selected ? 1.8 : 1,
                         ),
                       ),
@@ -363,8 +368,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       spacing: 7,
       runSpacing: 7,
       children: <Widget>[
-        if (_book.category.isNotEmpty)
-          _Badge(text: _book.category),
+        if (_book.category.isNotEmpty) _Badge(text: _book.category),
         _Badge(
           text: _book.productType.isNotEmpty
               ? _book.productType
@@ -416,8 +420,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
           ),
           const SizedBox(width: 10),
           FilledButton.icon(
-            onPressed:
-                _book.inStock && !_isAddingToCart ? _addToCart : null,
+            onPressed: _book.inStock && !_isAddingToCart ? _addToCart : null,
             icon: _isAddingToCart
                 ? const SizedBox(
                     width: 16,
@@ -449,8 +452,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     if (_book.category.isNotEmpty) rows['Category'] = _book.category;
     if (_book.productType.isNotEmpty) rows['Format'] = _book.productType;
 
-    for (final MapEntry<String, String> entry
-        in _book.specifications.entries) {
+    for (final MapEntry<String, String> entry in _book.specifications.entries) {
       if (entry.key.trim().isNotEmpty && entry.value.trim().isNotEmpty) {
         rows[entry.key] = entry.value;
       }
@@ -573,6 +575,61 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _pincodeDeliveryCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F5FF),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFD5E3FF)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            width: 42,
+            height: 42,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.location_on_outlined,
+              color: Color(0xFF175CD3),
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Delivery to Any PIN Code Address',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF101828),
+                  ),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  'Enter your complete delivery address and PIN code during checkout.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: Color(0xFF475467),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
