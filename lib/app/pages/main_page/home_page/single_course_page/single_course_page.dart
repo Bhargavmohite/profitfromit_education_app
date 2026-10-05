@@ -12,6 +12,7 @@ import 'package:webinar/app/pages/main_page/home_page/assignments_page/assignmen
 import 'package:webinar/app/pages/main_page/home_page/cart_page/cart_page.dart';
 import 'package:webinar/app/pages/main_page/home_page/quizzes_page/quizzes_page.dart';
 import 'package:webinar/app/pages/main_page/home_page/single_course_page/learning_page.dart';
+import 'package:webinar/app/pages/main_page/home_page/subscription_page/subscription_page.dart';
 import 'package:webinar/app/pages/main_page/home_page/single_course_page/single_content_page/single_content_page.dart';
 import 'package:webinar/app/providers/user_provider.dart';
 import 'package:webinar/app/services/guest_service/course_service.dart';
@@ -550,19 +551,36 @@ class _SingleCoursePageState extends State<SingleCoursePage> with SingleTickerPr
                                               Expanded(
                                                   child: button(
                                                       onTap: () async {
+                                                        // `subscribe` means this course supports subscription access.
+                                                        // It does not mean that the logged-in user currently owns an
+                                                        // active subscription plan. The API exposes that separately as
+                                                        // `auth_has_subscription`.
+                                                        if (courseData?.authHasSubscription != true) {
+                                                          await nextRoute(SubscriptionPage.pageName);
+
+                                                          // Refresh the course after the user returns from the
+                                                          // subscription plans/payment flow.
+                                                          if (mounted) {
+                                                            await getData();
+                                                          }
+                                                          return;
+                                                        }
+
                                                         setState(() {
                                                           isSubscribeLoading = true;
                                                         });
 
-                                                        bool res = await CartService.subscribeApplay(courseData!.id!);
+                                                        final bool res = await CartService.subscribeApplay(courseData!.id!);
 
                                                         if (res) {
-                                                          getData();
+                                                          await getData();
                                                         }
 
-                                                        setState(() {
-                                                          isSubscribeLoading = false;
-                                                        });
+                                                        if (mounted) {
+                                                          setState(() {
+                                                            isSubscribeLoading = false;
+                                                          });
+                                                        }
                                                       },
                                                       width: getSize().width,
                                                       height: 52,

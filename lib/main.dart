@@ -87,6 +87,7 @@ import 'app/pages/main_page/home_page/subscription_page/subscription_page.dart';
 import 'app/pages/main_page/home_page/support_message_page/conversation_page.dart';
 import 'app/pages/main_page/home_page/support_message_page/support_message_page.dart';
 import 'app/pages/main_page/main_page.dart';
+import 'app/pages/main_page/live_market_page/live_market_page.dart';
 import 'app/pages/main_page/providers_page/user_profile_page/user_profile_page.dart';
 import 'app/providers/app_language_provider.dart';
 import 'app/providers/filter_course_provider.dart';
@@ -308,6 +309,7 @@ class _MyAppState extends State<MyApp> {
           SubscriptionPage.pageName: (context) => const SubscriptionPage(),
           FavoritesPage.pageName: (context) => const FavoritesPage(),
           DashboardPage.pageName: (context) => const DashboardPage(),
+          LiveMarketPage.pageName: (context) => const LiveMarketPage(),
           SupportMessagePage.pageName: (context) => const SupportMessagePage(),
           ConversationPage.pageName: (context) => const ConversationPage(),
           PdfViewerPage.pageName: (context) => const PdfViewerPage(),

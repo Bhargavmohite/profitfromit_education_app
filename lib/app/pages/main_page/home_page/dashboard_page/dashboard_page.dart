@@ -73,7 +73,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return directionality(child: Consumer<UserProvider>(builder: (context, userProvider, _) {
+    return directionality(
+        child: Consumer<UserProvider>(builder: (context, userProvider, _) {
       return Scaffold(
         appBar: AppBar(
           titleSpacing: 0,
@@ -87,7 +88,8 @@ class _DashboardPageState extends State<DashboardPage> {
             child: Row(
               children: [
                 // back
-                MainWidget.menuButton(AppAssets.backSvg, false, Colors.white, Colors.black.withValues(alpha: .2), () {
+                MainWidget.menuButton(AppAssets.backSvg, false, Colors.white,
+                    Colors.black.withValues(alpha: .2), () {
                   backRoute();
                 }),
 
@@ -110,14 +112,24 @@ class _DashboardPageState extends State<DashboardPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // basket
-                    MainWidget.menuButton(AppAssets.basketSvg, userProvider.cartData?.items?.isNotEmpty ?? false, Colors.white, Colors.black.withValues(alpha: .2), () {
+                    MainWidget.menuButton(
+                        AppAssets.basketSvg,
+                        userProvider.cartData?.items?.isNotEmpty ?? false,
+                        Colors.white,
+                        Colors.black.withValues(alpha: .2), () {
                       nextRoute(CartPage.pageName);
                     }),
 
                     space(0, width: 12),
 
                     // notification
-                    MainWidget.menuButton(AppAssets.notificationSvg, userProvider.notification.where((element) => element.status == 'unread').isNotEmpty, Colors.white, Colors.black.withValues(alpha: .2), () {
+                    MainWidget.menuButton(
+                        AppAssets.notificationSvg,
+                        userProvider.notification
+                            .where((element) => element.status == 'unread')
+                            .isNotEmpty,
+                        Colors.white,
+                        Colors.black.withValues(alpha: .2), () {
                       nextRoute(NotificationPage.pageName);
                     })
                   ],
@@ -153,7 +165,10 @@ class _DashboardPageState extends State<DashboardPage> {
                                 child: Container(
                                   width: getSize().width,
                                   height: 155,
-                                  decoration: BoxDecoration(color: green77(), borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28))),
+                                  decoration: BoxDecoration(
+                                      color: green77(),
+                                      borderRadius: const BorderRadius.vertical(
+                                          bottom: Radius.circular(28))),
                                   child: SvgPicture.asset(
                                     AppAssets.appbarLineSvg,
                                     width: getSize().width * .9,
@@ -169,15 +184,19 @@ class _DashboardPageState extends State<DashboardPage> {
                                 Padding(
                                   padding: padding(),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
                                           Container(
-                                            constraints: BoxConstraints(maxWidth: getSize().width * .8, minWidth: getSize().width * .1),
+                                            constraints: BoxConstraints(
+                                                maxWidth: getSize().width * .8,
+                                                minWidth: getSize().width * .1),
                                             child: Text(
                                               '${appText.hi} ${userProvider.profile?.fullName ?? ''} ',
-                                              style: style20Bold().copyWith(color: Colors.white),
+                                              style: style20Bold().copyWith(
+                                                  color: Colors.white),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
@@ -188,7 +207,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                       space(4),
                                       Text(
                                         '${appText.youHave} ${data?.unreadNotifications?.count ?? '-'} ${appText.newEvents}...',
-                                        style: style14Regular().copyWith(color: Colors.white),
+                                        style: style14Regular()
+                                            .copyWith(color: Colors.white),
                                       )
                                     ],
                                   ),
@@ -205,25 +225,72 @@ class _DashboardPageState extends State<DashboardPage> {
                                     scrollDirection: Axis.horizontal,
                                     child: Row(
                                       children: [
-                                        if (locator<UserProvider>().profile?.roleName != 'user') ...{
-                                          dashboardInfoBox(green50, AppAssets.videoSvg, data?.pendingAppointments?.toString() ?? '-', appText.pendingMeetings, () {}),
+                                        if (locator<UserProvider>()
+                                                .profile
+                                                ?.roleName !=
+                                            'user') ...{
+                                          dashboardInfoBox(
+                                              green50,
+                                              AppAssets.videoSvg,
+                                              data?.pendingAppointments
+                                                      ?.toString() ??
+                                                  '-',
+                                              appText.pendingMeetings,
+                                              () {}),
                                         } else ...{
-                                          clickableDashboardInfoBox(green50, AppAssets.videoSvg, data?.webinarsCount?.toString() ?? '-', appText.purchasedCourses, () {
+                                          clickableDashboardInfoBox(
+                                              green50,
+                                              AppAssets.videoSvg,
+                                              data?.webinarsCount?.toString() ??
+                                                  '-',
+                                              appText.purchasedCourses, () {
                                             debugPrint("clicked purchase");
-                                            locator<PageProvider>().setPage(PageNames.myClasses);
+                                            locator<PageProvider>()
+                                                .setPage(PageNames.myClasses);
                                             backRoute();
                                           }),
                                         },
                                         space(0, width: 16),
-                                        dashboardInfoBox(orange50, AppAssets.mailSvg, data?.supportsCount?.toString() ?? '-', appText.supportMessages, () {}, icWidth: 20),
+                                        dashboardInfoBox(
+                                            orange50,
+                                            AppAssets.mailSvg,
+                                            data?.supportsCount?.toString() ??
+                                                '-',
+                                            appText.supportMessages,
+                                            () {},
+                                            icWidth: 20),
                                         space(0, width: 16),
-                                        if (locator<UserProvider>().profile?.roleName != 'user') ...{
-                                          dashboardInfoBox(blueFE, AppAssets.walletSvg, CurrencyUtils.calculator(data?.monthlySalesCount ?? 0.0), appText.monthlySales, () {}),
+                                        if (locator<UserProvider>()
+                                                .profile
+                                                ?.roleName !=
+                                            'user') ...{
+                                          dashboardInfoBox(
+                                              blueFE,
+                                              AppAssets.walletSvg,
+                                              CurrencyUtils.calculator(
+                                                  data?.monthlySalesCount ??
+                                                      0.0),
+                                              appText.monthlySales,
+                                              () {}),
                                         } else ...{
-                                          dashboardInfoBox(blueFE, AppAssets.calendarEmptySvg, data?.reserveMeetingsCount?.toString() ?? '-', appText.meetings, () {}),
+                                          dashboardInfoBox(
+                                              blueFE,
+                                              AppAssets.calendarEmptySvg,
+                                              data?.reserveMeetingsCount
+                                                      ?.toString() ??
+                                                  '-',
+                                              appText.meetings,
+                                              () {}),
                                         },
                                         space(0, width: 16),
-                                        dashboardInfoBox(cyan50, AppAssets.commentsSvg, data?.commentsCount?.toString() ?? '-', appText.comments, () {}, icWidth: 22),
+                                        dashboardInfoBox(
+                                            cyan50,
+                                            AppAssets.commentsSvg,
+                                            data?.commentsCount?.toString() ??
+                                                '-',
+                                            appText.comments,
+                                            () {},
+                                            icWidth: 22),
                                       ],
                                     ),
                                   ),
@@ -257,9 +324,30 @@ class _DashboardPageState extends State<DashboardPage> {
                                 });
                               },
                               children: [
-                                FinancialWidget.financialCard(CurrencyUtils.calculator(data?.balance), appText.accountBalance, '', () {}, AppAssets.walletSvg, green77(), isBg: true),
-                                slideUi(data?.badges?.earned ?? '', '${appText.nextBadges}: ${data?.badges?.nextBadge ?? ''}', () {}, isProgressBar: true, progressBarValue: data?.badges?.percent?.toString() ?? '0.0'),
-                                FinancialWidget.financialCard(data?.totalPoints?.toString() ?? '0', appText.rewardPoints, '', () {}, AppAssets.giftSvg, yellow29, isBg: true, onTapBox: () {
+                                FinancialWidget.financialCard(
+                                    CurrencyUtils.calculator(data?.balance),
+                                    appText.accountBalance,
+                                    '',
+                                    () {},
+                                    AppAssets.walletSvg,
+                                    green77(),
+                                    isBg: true),
+                                slideUi(
+                                    data?.badges?.earned ?? '',
+                                    '${appText.nextBadges}: ${data?.badges?.nextBadge ?? ''}',
+                                    () {},
+                                    isProgressBar: true,
+                                    progressBarValue:
+                                        data?.badges?.percent?.toString() ??
+                                            '0.0'),
+                                FinancialWidget.financialCard(
+                                    data?.totalPoints?.toString() ?? '0',
+                                    appText.rewardPoints,
+                                    '',
+                                    () {},
+                                    AppAssets.giftSvg,
+                                    yellow29,
+                                    isBg: true, onTapBox: () {
                                   nextRoute(RewardPointPage.pageName);
                                 }),
                               ],
@@ -278,7 +366,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                   duration: const Duration(milliseconds: 300),
                                   width: currentNotice == index ? 16 : 7,
                                   height: 7,
-                                  decoration: BoxDecoration(color: green77(), borderRadius: borderRadius()),
+                                  decoration: BoxDecoration(
+                                      color: green77(),
+                                      borderRadius: borderRadius()),
                                 );
                               }),
                             ],
@@ -295,7 +385,10 @@ class _DashboardPageState extends State<DashboardPage> {
                           Padding(
                             padding: padding(),
                             child: Text(
-                              locator<UserProvider>().profile?.roleName != 'user' ? appText.monthSales : appText.learningStatistics,
+                              locator<UserProvider>().profile?.roleName !=
+                                      'user'
+                                  ? appText.monthSales
+                                  : appText.learningStatistics,
                               style: style16Bold(),
                             ),
                           ),
@@ -332,7 +425,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           // details
                           SizedBox(
                             width: getSize().width,
-                            height: 190,
+                            height: 240,
                             child: PageView.builder(
                               itemCount: data?.unreadNoticeboards?.length ?? 0,
                               physics: const BouncingScrollPhysics(),
@@ -344,7 +437,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               itemBuilder: (context, index) {
                                 return Container(
                                   width: getSize().width,
-                                  height: 180,
+                                  height: 230,
                                   margin: padding(),
                                   child: Stack(
                                     children: [
@@ -355,27 +448,41 @@ class _DashboardPageState extends State<DashboardPage> {
                                           left: 12,
                                           child: Container(
                                             width: getSize().width,
-                                            height: 180,
-                                            decoration: BoxDecoration(color: Colors.white, borderRadius: borderRadius()),
+                                            height: 230,
+                                            decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: borderRadius()),
                                           )),
 
                                       // details
                                       Positioned(
                                           child: Container(
                                         width: getSize().width,
-                                        height: 180,
-                                        padding: padding(horizontal: 16, vertical: 16),
+                                        height: 230,
+                                        padding: padding(
+                                            horizontal: 16, vertical: 16),
                                         decoration: BoxDecoration(
                                           borderRadius: borderRadius(),
                                           color: Colors.white,
-                                          boxShadow: [boxShadow(Colors.black.withValues(alpha: .03), blur: 15, y: 3)],
+                                          boxShadow: [
+                                            boxShadow(
+                                                Colors.black
+                                                    .withValues(alpha: .03),
+                                                blur: 15,
+                                                y: 3)
+                                          ],
                                         ),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              data?.unreadNoticeboards?[index].title ?? '',
+                                              data?.unreadNoticeboards?[index]
+                                                      .title ??
+                                                  '',
                                               style: style14Bold(),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
 
                                             space(8),
@@ -383,35 +490,70 @@ class _DashboardPageState extends State<DashboardPage> {
                                             // name and date
                                             Row(
                                               children: [
-                                                SvgPicture.asset(AppAssets.profileSvg),
+                                                SvgPicture.asset(
+                                                    AppAssets.profileSvg),
                                                 space(0, width: 4),
-                                                Text(
-                                                  data?.unreadNoticeboards?[index].sender ?? '',
-                                                  style: style10Regular().copyWith(color: greyA5),
+                                                Flexible(
+                                                  child: Text(
+                                                    data
+                                                            ?.unreadNoticeboards?[
+                                                                index]
+                                                            .sender ??
+                                                        '',
+                                                    style: style10Regular()
+                                                        .copyWith(
+                                                            color: greyA5),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
                                                 ),
-                                                space(0, width: 20),
-                                                SvgPicture.asset(AppAssets.calendarSvg),
+                                                space(0, width: 12),
+                                                SvgPicture.asset(
+                                                    AppAssets.calendarSvg),
                                                 space(0, width: 4),
-                                                Text(
-                                                  timeStampToDate((data?.unreadNoticeboards?[index].createdAt ?? 0) * 1000),
-                                                  style: style10Regular().copyWith(color: greyA5),
-                                                  maxLines: 5,
-                                                  overflow: TextOverflow.ellipsis,
+                                                Flexible(
+                                                  child: Text(
+                                                    timeStampToDate((data
+                                                                ?.unreadNoticeboards?[
+                                                                    index]
+                                                                .createdAt ??
+                                                            0) *
+                                                        1000),
+                                                    style: style10Regular()
+                                                        .copyWith(
+                                                            color: greyA5),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
                                                 ),
                                               ],
                                             ),
 
                                             // line
                                             Container(
-                                              margin: const EdgeInsets.symmetric(vertical: 12),
+                                              margin:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 12),
                                               width: getSize().width,
                                               height: 1,
                                               color: greyF8,
                                             ),
 
-                                            Text(
-                                              parse(data?.unreadNoticeboards?[index].message ?? '').body?.text ?? '',
-                                              style: style14Regular().copyWith(color: greyA5),
+                                            Expanded(
+                                              child: Text(
+                                                parse(data?.unreadNoticeboards?[index]
+                                                                .message ??
+                                                            '')
+                                                        .body
+                                                        ?.text ??
+                                                    '',
+                                                style: style14Regular()
+                                                    .copyWith(color: greyA5),
+                                                maxLines: 7,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             )
                                           ],
                                         ),
@@ -429,13 +571,17 @@ class _DashboardPageState extends State<DashboardPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              ...List.generate(data?.unreadNoticeboards?.length ?? 0, (index) {
+                              ...List.generate(
+                                  data?.unreadNoticeboards?.length ?? 0,
+                                  (index) {
                                 return AnimatedContainer(
                                   margin: padding(horizontal: 1.5),
                                   duration: const Duration(milliseconds: 300),
                                   width: currentNotice == index ? 16 : 7,
                                   height: 7,
-                                  decoration: BoxDecoration(color: green77(), borderRadius: borderRadius()),
+                                  decoration: BoxDecoration(
+                                      color: green77(),
+                                      borderRadius: borderRadius()),
                                 );
                               }),
                             ],
@@ -562,7 +708,11 @@ class _DashboardPageState extends State<DashboardPage> {
       minX: 1.0,
       maxX: 12.0,
       minY: 0.0,
-      maxY: data?.monthlyChart?.data?.reduce((curr, next) => curr.toInt() > next.toInt() ? curr.toInt() : next.toInt()).toDouble() ?? 1.0,
+      maxY: data?.monthlyChart?.data
+              ?.reduce((curr, next) =>
+                  curr.toInt() > next.toInt() ? curr.toInt() : next.toInt())
+              .toDouble() ??
+          1.0,
       lineTouchData: LineTouchData(
         getTouchedSpotIndicator: (barData, spotIndexes) {
           return spotIndexes.map((spotIndex) {
@@ -587,7 +737,8 @@ class _DashboardPageState extends State<DashboardPage> {
         touchTooltipData: LineTouchTooltipData(
             getTooltipItems: (value) {
               return value.map((e) {
-                return LineTooltipItem(e.y.toString(), style12Bold().copyWith(fontSize: 10, color: Colors.white));
+                return LineTooltipItem(e.y.toString(),
+                    style12Bold().copyWith(fontSize: 10, color: Colors.white));
               }).toList();
             },
             getTooltipColor: (touchedSpot) {
@@ -601,7 +752,8 @@ class _DashboardPageState extends State<DashboardPage> {
         LineChartBarData(
           spots: [
             ...List.generate(data?.monthlyChart?.data?.length ?? 0, (index) {
-              return FlSpot(index + 1, data?.monthlyChart?.data?[index].toDouble() ?? 0.0);
+              return FlSpot(index + 1,
+                  data?.monthlyChart?.data?[index].toDouble() ?? 0.0);
             }),
           ],
           isCurved: true,
@@ -617,14 +769,18 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           belowBarData: BarAreaData(
             show: true,
-            gradient: LinearGradient(colors: gradientColors, begin: Alignment.bottomCenter, end: Alignment.topCenter),
+            gradient: LinearGradient(
+                colors: gradientColors,
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter),
           ),
         ),
       ],
     );
   }
 
-  Widget slideUi(String title, String subTitle, Function onTap, {bool isProgressBar = false, String? progressBarValue}) {
+  Widget slideUi(String title, String subTitle, Function onTap,
+      {bool isProgressBar = false, String? progressBarValue}) {
     return Container(
       padding: padding(),
       width: getSize().width,
@@ -641,7 +797,8 @@ class _DashboardPageState extends State<DashboardPage> {
               child: Container(
                 width: getSize().width,
                 height: 130,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: borderRadius()),
+                decoration: BoxDecoration(
+                    color: Colors.white, borderRadius: borderRadius()),
               )),
 
           Positioned(
@@ -652,7 +809,13 @@ class _DashboardPageState extends State<DashboardPage> {
             child: Container(
               width: getSize().width,
               height: 180,
-              decoration: BoxDecoration(color: Colors.white, borderRadius: borderRadius(radius: 20), boxShadow: [boxShadow(Colors.black.withValues(alpha: .03), blur: 15, y: 3)]),
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: borderRadius(radius: 20),
+                  boxShadow: [
+                    boxShadow(Colors.black.withValues(alpha: .03),
+                        blur: 15, y: 3)
+                  ]),
               clipBehavior: Clip.hardEdge,
               padding: const EdgeInsetsDirectional.only(
                 start: 16,
@@ -688,7 +851,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 child: Container(
                   width: 80,
                   height: 80,
-                  decoration: BoxDecoration(color: yellow4C, borderRadius: borderRadius(radius: 20)),
+                  decoration: BoxDecoration(
+                      color: yellow4C, borderRadius: borderRadius(radius: 20)),
                   alignment: Alignment.center,
                   child: isProgressBar
                       ? Stack(
@@ -700,15 +864,18 @@ class _DashboardPageState extends State<DashboardPage> {
                               right: 14,
                               child: CircularProgressIndicator(
                                 color: Colors.white,
-                                value: double.parse(progressBarValue ?? '0.0') / 100,
-                                backgroundColor: Colors.white.withValues(alpha: .3),
+                                value: double.parse(progressBarValue ?? '0.0') /
+                                    100,
+                                backgroundColor:
+                                    Colors.white.withValues(alpha: .3),
                                 strokeWidth: 5,
                               ),
                             ),
                             Center(
                               child: Text(
                                 '${double.parse(progressBarValue ?? '0').toStringAsFixed(0)}%',
-                                style: style16Bold().copyWith(color: Colors.white),
+                                style:
+                                    style16Bold().copyWith(color: Colors.white),
                               ),
                             )
                           ],

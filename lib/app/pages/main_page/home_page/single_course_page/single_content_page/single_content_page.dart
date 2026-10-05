@@ -50,10 +50,17 @@ class SingleContentPage extends StatefulWidget {
 }
 
 class _SingleContentPageState extends State<SingleContentPage> {
-
   String tag = "_SingleContentPageState";
 
-  List<String> videoFormats = ['mp4', 'mkv', 'mov', 'wmv', 'avi', 'webm', 'video'];
+  List<String> videoFormats = [
+    'mp4',
+    'mkv',
+    'mov',
+    'wmv',
+    'avi',
+    'webm',
+    'video'
+  ];
 
   NoteModel? note;
 
@@ -84,12 +91,14 @@ class _SingleContentPageState extends State<SingleContentPage> {
       content = (ModalRoute.of(context)!.settings.arguments as List)[0];
       courseId = (ModalRoute.of(context)!.settings.arguments as List)[1];
       try {
-        previousContentLink = (ModalRoute.of(context)!.settings.arguments as List)[2];
+        previousContentLink =
+            (ModalRoute.of(context)!.settings.arguments as List)[2];
       } catch (_) {}
-      contentListIndex = (ModalRoute.of(context)!.settings.arguments as List)[3];
+      contentListIndex =
+          (ModalRoute.of(context)!.settings.arguments as List)[3];
       try {
         contentList = (ModalRoute.of(context)!.settings.arguments as List)[4];
-      } catch(_) {
+      } catch (_) {
         debugPrint("$tag error in getting list of all content data ========> ");
       }
       debugPrint("$tag course id ========> ${courseId.toString()}");
@@ -98,7 +107,10 @@ class _SingleContentPageState extends State<SingleContentPage> {
 
       Future.wait([getData(), getPreviousData(), getNote()]).then((value) {
         if (previousContentData != null) {
-          if (singleContentData?.checkPreviousParts == 1 && (!(previousContentData?.authHasRead ?? true) || !(previousContentData?.passed ?? true) || (previousContentData?.assignmentStatus != 'passed'))) {
+          if (singleContentData?.checkPreviousParts == 1 &&
+              (!(previousContentData?.authHasRead ?? true) ||
+                  !(previousContentData?.passed ?? true) ||
+                  (previousContentData?.assignmentStatus != 'passed'))) {
             isDripContent = true;
           }
         }
@@ -124,7 +136,8 @@ class _SingleContentPageState extends State<SingleContentPage> {
     setState(() {
       isLoading = true;
     });
-    singleContentData = await CourseService.getSingleContent(content?.link ?? '');
+    singleContentData =
+        await CourseService.getSingleContent(content?.link ?? '');
     //debugPrint("content link ==============> ${content?.link}");
     // debugPrint("singleContentData content ==============> ${singleContentData!.content}");
 
@@ -147,11 +160,13 @@ class _SingleContentPageState extends State<SingleContentPage> {
       return;
     }
 
-    previousContentData = await CourseService.getSingleContent(previousContentLink!);
+    previousContentData =
+        await CourseService.getSingleContent(previousContentLink!);
   }
 
   void initYouTubePlayer() {
-    String videoId = YoutubePlayer.convertUrlToId(singleContentData!.file.toString()) ?? "";
+    String videoId =
+        YoutubePlayer.convertUrlToId(singleContentData!.file.toString()) ?? "";
     _playerController = YoutubePlayerController(
       initialVideoId: videoId,
       flags: const YoutubePlayerFlags(
@@ -172,7 +187,7 @@ class _SingleContentPageState extends State<SingleContentPage> {
     // print(content?.storage ?? '');
     // print(content?.downloadable == 1 || ( content?.type == 'file' && ([ 'upload_archive', 'external_link', 'google_drive', 'iframe', 'secure_host', 'upload' ].contains(content?.storage ?? '')) ));
     return directionality(
-        child: youTubePlayerWidget(),
+      child: youTubePlayerWidget(),
     );
   }
 
@@ -182,8 +197,15 @@ class _SingleContentPageState extends State<SingleContentPage> {
         bottom: 0,
         child: Container(
           width: getSize().width,
-          padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 20),
-          decoration: BoxDecoration(color: Colors.white, boxShadow: [boxShadow(Colors.black.withValues(alpha: .1), blur: 15, y: -3)], borderRadius: const BorderRadius.vertical(top: Radius.circular(30))),
+          padding:
+              const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 20),
+          decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                boxShadow(Colors.black.withValues(alpha: .1), blur: 15, y: -3)
+              ],
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(30))),
           child: content?.type == 'file'
               ? Row(
                   children: [
@@ -192,7 +214,10 @@ class _SingleContentPageState extends State<SingleContentPage> {
                       Expanded(
                         child: button(
                             onTap: () {
-                              downloadSheet('${Constants.baseUrl}files/${content?.id}/download', singleContentData?.file?.split('/').last ?? '${singleContentData?.title}.${singleContentData?.fileType}');
+                              downloadSheet(
+                                  '${Constants.baseUrl}files/${content?.id}/download',
+                                  singleContentData?.file?.split('/').last ??
+                                      '${singleContentData?.title}.${singleContentData?.fileType}');
                             },
                             width: getSize().width,
                             height: 52,
@@ -232,18 +257,27 @@ class _SingleContentPageState extends State<SingleContentPage> {
                                 case 'google_drive':
                                 case 'iframe':
                                 case 'secure_host':
-                                  nextRoute(WebViewPage.pageName, arguments: [singleContentData?.file, singleContentData?.title, true, LoadRequestMethod.get]);
+                                  nextRoute(WebViewPage.pageName, arguments: [
+                                    singleContentData?.file,
+                                    singleContentData?.title,
+                                    true,
+                                    LoadRequestMethod.get
+                                  ]);
                                   return;
 
                                 case 's3':
                                   {
-                                    if (singleContentData?.fileType != 'video') {
-                                      nextRoute(WebViewPage.pageName, arguments: [
-                                        singleContentData?.file,
-                                        singleContentData?.title,
-                                        singleContentData?.fileType == 'pdf' ? false : true, // if pdf file. Authorization token not be sent
-                                        LoadRequestMethod.get
-                                      ]);
+                                    if (singleContentData?.fileType !=
+                                        'video') {
+                                      nextRoute(WebViewPage.pageName,
+                                          arguments: [
+                                            singleContentData?.file,
+                                            singleContentData?.title,
+                                            singleContentData?.fileType == 'pdf'
+                                                ? false
+                                                : true, // if pdf file. Authorization token not be sent
+                                            LoadRequestMethod.get
+                                          ]);
                                       return;
                                     }
                                   }
@@ -251,11 +285,13 @@ class _SingleContentPageState extends State<SingleContentPage> {
                                 default:
                               }
 
-                              showSnackBar(ErrorEnum.alert, appText.noContentForShow);
+                              showSnackBar(
+                                  ErrorEnum.alert, appText.noContentForShow);
                             },
                             width: getSize().width,
                             height: 52,
-                            text: buttonText(singleContentData?.storage ?? '', singleContentData?.fileType ?? ''),
+                            text: buttonText(singleContentData?.storage ?? '',
+                                singleContentData?.fileType ?? ''),
                             bgColor: green77(),
                             textColor: Colors.white),
                       ),
@@ -290,7 +326,11 @@ class _SingleContentPageState extends State<SingleContentPage> {
                                   isSpeakLoading = true;
                                 });
 
-                                var res = await flutterTts.speak(parse(singleContentData?.content ?? '').documentElement?.text ?? '');
+                                var res = await flutterTts.speak(
+                                    parse(singleContentData?.content ?? '')
+                                            .documentElement
+                                            ?.text ??
+                                        '');
 
                                 setState(() {
                                   isPlayingText = res == 1;
@@ -309,7 +349,9 @@ class _SingleContentPageState extends State<SingleContentPage> {
                             child: isSpeakLoading
                                 ? loading(color: Colors.white)
                                 : Icon(
-                                    isPlayingText ? Icons.pause : Icons.play_arrow_rounded,
+                                    isPlayingText
+                                        ? Icons.pause
+                                        : Icons.play_arrow_rounded,
                                     color: Colors.white,
                                   ),
                           ),
@@ -323,22 +365,35 @@ class _SingleContentPageState extends State<SingleContentPage> {
                         Expanded(
                             child: button(
                                 onTap: () async {
-                                  if (!(singleContentData?.isFinished ?? false)) {
-                                    if (singleContentData?.sessionApi == 'agora') {
-                                      nextRoute(WebViewPage.pageName, arguments: ['${Constants.baseUrl}panel/webinars/session/agora/${singleContentData?.id ?? ''}', singleContentData?.title ?? '', true, LoadRequestMethod.get]);
+                                  if (!(singleContentData?.isFinished ??
+                                      false)) {
+                                    if (singleContentData?.sessionApi ==
+                                        'agora') {
+                                      nextRoute(WebViewPage.pageName,
+                                          arguments: [
+                                            '${Constants.baseUrl}panel/webinars/session/agora/${singleContentData?.id ?? ''}',
+                                            singleContentData?.title ?? '',
+                                            true,
+                                            LoadRequestMethod.get
+                                          ]);
                                     } else {
-                                      String token = await AppData.getAccessToken();
+                                      String token =
+                                          await AppData.getAccessToken();
 
                                       Map<String, String> headers = {
                                         "Authorization": "Bearer $token",
                                         "Content-Type": "application/json",
                                         'Accept': 'application/json',
                                         'x-api-key': Constants.apiKey,
-                                        'x-locale': locator<AppLanguage>().currentLanguage.toLowerCase(),
+                                        'x-locale': locator<AppLanguage>()
+                                            .currentLanguage
+                                            .toLowerCase(),
                                       };
 
-                                      launchUrlString(singleContentData?.link ?? '',
-                                          webViewConfiguration: WebViewConfiguration(
+                                      launchUrlString(
+                                          singleContentData?.link ?? '',
+                                          webViewConfiguration:
+                                              WebViewConfiguration(
                                             headers: headers,
                                           ),
                                           mode: LaunchMode.externalApplication);
@@ -348,7 +403,10 @@ class _SingleContentPageState extends State<SingleContentPage> {
                                 width: getSize().width,
                                 height: 52,
                                 text: appText.join,
-                                bgColor: (singleContentData?.isFinished ?? false) ? greyCF.withValues(alpha: .8) : green77(),
+                                bgColor:
+                                    (singleContentData?.isFinished ?? false)
+                                        ? greyCF.withValues(alpha: .8)
+                                        : green77(),
                                 textColor: Colors.white)),
 
                         space(0, width: 16),
@@ -360,18 +418,50 @@ class _SingleContentPageState extends State<SingleContentPage> {
                             try {
                               if (!(singleContentData?.isFinished ?? false)) {
                                 DateTime start = DateTime(
-                                  DateTime.fromMillisecondsSinceEpoch((singleContentData?.date ?? 0) * 1000, isUtc: true).year,
-                                  DateTime.fromMillisecondsSinceEpoch((singleContentData?.date ?? 0) * 1000, isUtc: true).month,
-                                  DateTime.fromMillisecondsSinceEpoch((singleContentData?.date ?? 0) * 1000, isUtc: true).day,
-                                  DateTime.fromMillisecondsSinceEpoch((singleContentData?.date ?? 0) * 1000, isUtc: true).hour,
-                                  DateTime.fromMillisecondsSinceEpoch((singleContentData?.date ?? 0) * 1000, isUtc: true).minute,
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                          (singleContentData?.date ?? 0) * 1000,
+                                          isUtc: true)
+                                      .year,
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                          (singleContentData?.date ?? 0) * 1000,
+                                          isUtc: true)
+                                      .month,
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                          (singleContentData?.date ?? 0) * 1000,
+                                          isUtc: true)
+                                      .day,
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                          (singleContentData?.date ?? 0) * 1000,
+                                          isUtc: true)
+                                      .hour,
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                          (singleContentData?.date ?? 0) * 1000,
+                                          isUtc: true)
+                                      .minute,
                                 );
                                 DateTime end = DateTime(
-                                  DateTime.fromMillisecondsSinceEpoch((singleContentData?.date ?? 0) * 1000, isUtc: true).year,
-                                  DateTime.fromMillisecondsSinceEpoch((singleContentData?.date ?? 0) * 1000, isUtc: true).month,
-                                  DateTime.fromMillisecondsSinceEpoch((singleContentData?.date ?? 0) * 1000, isUtc: true).day,
-                                  DateTime.fromMillisecondsSinceEpoch((singleContentData?.date ?? 0) * 1000, isUtc: true).hour,
-                                  (DateTime.fromMillisecondsSinceEpoch((singleContentData?.date ?? 0) * 1000, isUtc: true).minute + (singleContentData?.duration ?? 0)),
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                          (singleContentData?.date ?? 0) * 1000,
+                                          isUtc: true)
+                                      .year,
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                          (singleContentData?.date ?? 0) * 1000,
+                                          isUtc: true)
+                                      .month,
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                          (singleContentData?.date ?? 0) * 1000,
+                                          isUtc: true)
+                                      .day,
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                          (singleContentData?.date ?? 0) * 1000,
+                                          isUtc: true)
+                                      .hour,
+                                  (DateTime.fromMillisecondsSinceEpoch(
+                                              (singleContentData?.date ?? 0) *
+                                                  1000,
+                                              isUtc: true)
+                                          .minute +
+                                      (singleContentData?.duration ?? 0)),
                                 );
 
                                 final Event event = Event(
@@ -391,8 +481,12 @@ class _SingleContentPageState extends State<SingleContentPage> {
                           height: 52,
                           text: appText.addToCalendar,
                           bgColor: Colors.white,
-                          textColor: (singleContentData?.isFinished ?? false) ? greyCF : green77(),
-                          borderColor: (singleContentData?.isFinished ?? false) ? greyCF.withValues(alpha: .8) : green77(),
+                          textColor: (singleContentData?.isFinished ?? false)
+                              ? greyCF
+                              : green77(),
+                          borderColor: (singleContentData?.isFinished ?? false)
+                              ? greyCF.withValues(alpha: .8)
+                              : green77(),
                         )),
                       ],
                     ),
@@ -413,7 +507,7 @@ class _SingleContentPageState extends State<SingleContentPage> {
   }
 
   Widget youTubePlayerWidget() {
-    if(isLoading) {
+    if (isLoading) {
       return Container(
         decoration: BoxDecoration(
           color: greyFA,
@@ -436,19 +530,21 @@ class _SingleContentPageState extends State<SingleContentPage> {
             progressIndicatorColor: Colors.blueAccent,
           ),
           builder: (context, player) {
-            
-
-            return  Scaffold(
+            return Scaffold(
               appBar: appbar(
                 title: appText.courseDetails,
                 rightIcon: AppAssets.shareSvg,
                 onTapRightIcon: () {
-                  debugPrint("$tag Single course id ========> ${courseId.toString()}");
-                  debugPrint("$tag Single content ========> ${content?.toJson()}");
-                  debugPrint("$tag Single Content Data =============> ${singleContentData!.toJson()}");
+                  debugPrint(
+                      "$tag Single course id ========> ${courseId.toString()}");
+                  debugPrint(
+                      "$tag Single content ========> ${content?.toJson()}");
+                  debugPrint(
+                      "$tag Single Content Data =============> ${singleContentData!.toJson()}");
 
-                  String link = "https://profitfromit.co.in/course/$courseId/lesson/${singleContentData!.id}";
-                  if(Platform.isIOS) {
+                  String link =
+                      "https://profitfromit.co.in/course/$courseId/lesson/${singleContentData!.id}";
+                  if (Platform.isIOS) {
                     shareBlog(
                       context,
                       singleContentData!.title ?? '',
@@ -463,6 +559,469 @@ class _SingleContentPageState extends State<SingleContentPage> {
               body: isLoading
                   ? loading()
                   : Stack(
+                      children: [
+                        // details
+                        Positioned.fill(
+                          child: SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            padding: padding(),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                space(20),
+                                Text(
+                                  singleContentData?.title ?? '',
+                                  style: style16Bold(),
+                                ),
+
+                                if (isDripContent) ...{
+                                  space(20),
+                                  Container(
+                                    width: getSize().width,
+                                    padding:
+                                        padding(vertical: 20, horizontal: 10),
+                                    decoration: BoxDecoration(
+                                        borderRadius: borderRadius(),
+                                        border: Border.all(color: greyE7)),
+                                    child: Column(
+                                      children: [
+                                        SvgPicture.asset(
+                                            AppAssets.accessDeniedSvg),
+                                        Text(
+                                          appText.accessDenied,
+                                          style: style16Bold()
+                                              .copyWith(color: grey33),
+                                        ),
+                                        space(8),
+                                        Text(
+                                          appText.accessDeniedDesc,
+                                          style: style14Regular()
+                                              .copyWith(color: greyA5),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                } else ...{
+                                  if ((singleContentData?.storage == 'upload' ||
+                                          singleContentData?.storage ==
+                                              'external_link' ||
+                                          singleContentData?.storage == 's3') &&
+                                      videoFormats.contains(singleContentData
+                                          ?.fileType
+                                          ?.toLowerCase())) ...{
+                                    space(20),
+                                    CourseVideoPlayer(
+                                        singleContentData?.file ?? '',
+                                        '',
+                                        Constants.contentRouteObserver),
+                                  },
+                                  if (singleContentData?.storage == 'vimeo' ||
+                                      singleContentData?.storage ==
+                                          'youtube') ...{
+                                    player
+
+                                    // youTubePlayerWidget()
+
+                                    // PodVideoPlayerDev(
+                                    //   singleContentData?.file ?? '',
+                                    //   singleContentData?.storage ?? '',
+                                    //   Constants.contentRouteObserver
+                                    // )
+                                  },
+                                },
+
+                                space(20),
+
+                                // info
+                                Container(
+                                  padding: padding(),
+                                  width: getSize().width,
+                                  child: Wrap(
+                                    alignment: WrapAlignment.spaceBetween,
+                                    runAlignment: WrapAlignment.center,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    runSpacing: 21,
+                                    children: [
+                                      SingleCourseWidget.courseStatus(
+                                          appText.type,
+                                          content?.type == 'file'
+                                              ? singleContentData?.fileType
+                                                      ?.toString()
+                                                      .toUpperCase() ??
+                                                  ''
+                                              : content?.type == 'session'
+                                                  ? singleContentData
+                                                          ?.sessionApi
+                                                          ?.toString() ??
+                                                      ''
+                                                  : appText.text_lesson,
+                                          AppAssets.documentSvg,
+                                          width: getSize().width * .38),
+
+                                      if (singleContentData?.date != null) ...{
+                                        SingleCourseWidget.courseStatus(
+                                            appText.startDate,
+                                            timeStampToDate(
+                                                    (singleContentData?.date ??
+                                                            0) *
+                                                        1000)
+                                                .toString(),
+                                            AppAssets.calendarSvg,
+                                            width: getSize().width * .38),
+                                      },
+
+                                      if (singleContentData?.volume !=
+                                          null) ...{
+                                        SingleCourseWidget.courseStatus(
+                                            appText.volume,
+                                            singleContentData?.volume ?? '',
+                                            AppAssets.paperDownloadSvg,
+                                            width: getSize().width * .38),
+                                      },
+
+                                      if (singleContentData?.createdAt !=
+                                          null) ...{
+                                        SingleCourseWidget.courseStatus(
+                                            appText.publishDate,
+                                            timeStampToDate((singleContentData
+                                                            ?.createdAt ??
+                                                        0) *
+                                                    1000)
+                                                .toString(),
+                                            AppAssets.calendarSvg,
+                                            width: getSize().width * .38),
+                                      },
+
+                                      if (singleContentData?.duration !=
+                                          null) ...{
+                                        SingleCourseWidget.courseStatus(
+                                            appText.duration,
+                                            '${(singleContentData?.duration ?? 0)} ${appText.min}',
+                                            AppAssets.timeSvg,
+                                            width: getSize().width * .38),
+                                      },
+
+                                      SingleCourseWidget.courseStatus(
+                                          appText.downloadable,
+                                          content?.downloadable == 1
+                                              ? appText.yes
+                                              : appText.no,
+                                          AppAssets.paperDownloadSvg,
+                                          width: getSize().width * .38),
+
+                                      // SingleCourseWidget.courseStatus(
+                                      //   appText.type,
+                                      //   courseData.type ?? '',
+                                      //   AppAssets.moreSvg,
+                                      //   width: getSize().width * .38
+                                      // ),
+
+                                      // SingleCourseWidget.courseStatus(
+                                      //   appText.status,
+                                      //   courseData.status ?? '',
+                                      //   AppAssets.moreSvg,
+                                      //   width: getSize().width * .38
+                                      // ),
+                                    ],
+                                  ),
+                                ),
+
+                                if (content?.type == 'text_lesson') ...{
+                                  space(20),
+                                  HtmlWidget(
+                                    singleContentData?.content ?? '',
+                                    customStylesBuilder: (element) {
+                                      if (element.localName == 'img') {
+                                        return {
+                                          'display': 'block',
+                                          'width': '100%',
+                                          'max-width': '100%',
+                                          'height': 'auto',
+                                          'max-height': '320px',
+                                          'object-fit': 'contain',
+                                          'border-radius': '16px',
+                                          'margin': '10px 0',
+                                        };
+                                      }
+                                      return null;
+                                    },
+                                    // factoryBuilder: () => CustomWidgetFactory(),
+                                    // textStyle: style14Regular().copyWith(color: greyA5),
+                                    onErrorBuilder: (context, element, error) {
+                                      debugPrint(
+                                          "element ==============> $element");
+                                      debugPrint(
+                                          "error ==============> $error");
+                                    },
+                                  ),
+                                } else ...{
+                                  space(20),
+                                  Text(
+                                    singleContentData?.description ?? '',
+                                    style: style14Regular()
+                                        .copyWith(color: greyA5),
+                                  ),
+                                },
+
+                                space(20),
+
+                                if (!isDripContent) ...{
+                                  // toggle
+                                  SizedBox(
+                                    width: getSize().width,
+                                    child: switchButton(
+                                        appText.iHaveReadThisLesson,
+                                        content?.authHasRead ?? false, (value) {
+                                      setState(() {
+                                        content?.authHasRead = value;
+                                      });
+
+                                      CourseService.toggle(
+                                          courseId!,
+                                          content!.type == 'text_lesson'
+                                              ? 'text_lesson_id'
+                                              : content!.type == 'file'
+                                                  ? 'file_id'
+                                                  : 'session_id',
+                                          singleContentData!.id.toString(),
+                                          value);
+                                    }),
+                                  ),
+
+                                  space(20),
+                                },
+
+                                if (PublicData.apiConfigData?[
+                                        'course_notes_status'] ==
+                                    '1') ...{
+                                  // add note
+                                  Row(
+                                    children: [
+                                      // add a note
+                                      Expanded(
+                                          child: button(
+                                              onTap: () async {
+                                                if (note == null) {
+                                                  bool? res =
+                                                      await SingleCourseWidget
+                                                          .showAddNoteDialog(
+                                                              courseId!,
+                                                              singleContentData!
+                                                                  .id!,
+                                                              text: note?.note);
+
+                                                  if (res ?? false) {
+                                                    getNote();
+                                                  }
+                                                } else {
+                                                  SingleCourseWidget
+                                                      .viewNoteDialog(
+                                                    courseId!,
+                                                    singleContentData!.id!,
+                                                    note?.note ?? '',
+                                                    () async {
+                                                      // onTapEdit
+                                                      backRoute();
+
+                                                      bool? res =
+                                                          await SingleCourseWidget
+                                                              .showAddNoteDialog(
+                                                                  courseId!,
+                                                                  singleContentData!
+                                                                      .id!,
+                                                                  text: note
+                                                                      ?.note);
+
+                                                      if (res ?? false) {
+                                                        getNote();
+                                                      }
+                                                    },
+                                                    () {
+                                                      // onTapAttachment
+                                                      backRoute();
+
+                                                      SingleCourseWidget
+                                                          .showNoteAttachmentDialog(
+                                                              () {
+                                                        // onTapRemove
+                                                      }, () {
+                                                        // onTapDownload
+                                                        downloadSheet(
+                                                            note!.attachment!,
+                                                            note!.attachment!
+                                                                .split('/')
+                                                                .last);
+                                                      },
+                                                              note?.attachment !=
+                                                                  null // hasFileForDownload
+                                                              );
+                                                    },
+                                                    note?.attachment != null,
+                                                  );
+                                                }
+                                              },
+                                              width: getSize().width,
+                                              height: 52,
+                                              text: note == null
+                                                  ? appText.addANote
+                                                  : appText.viewNote,
+                                              bgColor: Colors.white,
+                                              textColor: green77(),
+                                              borderColor: green77(),
+                                              raduis: 15)),
+
+                                      if (note != null) ...{
+                                        space(0, width: 16),
+                                        button(
+                                            onTap: () {
+                                              PersonalNoteService.delete(
+                                                  note!.id!);
+                                              note = null;
+                                              setState(() {});
+                                            },
+                                            width: 52,
+                                            height: 52,
+                                            text: '',
+                                            bgColor: Colors.transparent,
+                                            textColor: Colors.white,
+                                            borderColor: red49,
+                                            iconPath: AppAssets.delete2Svg,
+                                            iconColor: red49,
+                                            raduis: 20)
+                                      }
+                                    ],
+                                  ),
+                                },
+
+                                // attachments
+                                if (singleContentData
+                                        ?.attachments?.isNotEmpty ??
+                                    false) ...{
+                                  SizedBox(
+                                    width: getSize().width,
+                                    child: SingleChildScrollView(
+                                      physics: const BouncingScrollPhysics(),
+                                      child: Row(
+                                        children: [
+                                          ...List.generate(
+                                              singleContentData
+                                                      ?.attachments?.length ??
+                                                  0, (index) {
+                                            return horizontalChapterItem(
+                                              green50,
+                                              AppAssets.paperDownloadSvg,
+                                              singleContentData
+                                                      ?.attachments?[index]
+                                                      .title ??
+                                                  '',
+                                              singleContentData
+                                                      ?.attachments?[index]
+                                                      .volume ??
+                                                  '',
+                                              () {
+                                                downloadSheet(
+                                                    '${Constants.baseUrl}files/${content?.id}/download',
+                                                    singleContentData
+                                                            ?.attachments?[
+                                                                index]
+                                                            .file
+                                                            ?.split('/')
+                                                            .last ??
+                                                        '');
+                                              },
+                                            );
+                                          })
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                },
+
+                                if (contentListIndex <
+                                    contentList.length - 1) ...{
+                                  button(
+                                    onTap: () {
+                                      checkNextVideo();
+                                    },
+                                    width: getSize().width,
+                                    height: 52,
+                                    text: appText.next,
+                                    bgColor: green77(),
+                                    textColor: Colors.white,
+                                    raduis: 15,
+                                  ),
+                                  space(20),
+                                },
+
+                                space(200),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // button
+                        if (!isDripContent) ...{
+                          if (content?.fileType == 'pdf') ...{
+                            pageButton(),
+                          } else if (content?.downloadable == 1 ||
+                              (content?.type == 'file' &&
+                                  ([
+                                    'upload_archive',
+                                    'external_link',
+                                    'google_drive',
+                                    'iframe',
+                                    'secure_host',
+                                  ].contains(content?.storage ?? '')))) ...{
+                            pageButton(
+                                showViewButton: ([
+                              'upload_archive',
+                              'external_link',
+                              'google_drive',
+                              'iframe',
+                              'secure_host',
+                            ].contains(content?.storage ?? '')))
+                          } else if (content?.type != 'file') ...{
+                            pageButton(),
+                          }
+                        }
+                      ],
+                    ),
+            );
+          },
+        );
+      }
+    } else {
+      return Scaffold(
+        appBar: appbar(
+          title: appText.courseDetails,
+          rightIcon: AppAssets.shareSvg,
+          onTapRightIcon: () {
+            debugPrint(
+                "$tag Single course id ========> ${courseId.toString()}");
+            debugPrint("$tag Single content ========> ${content?.toJson()}");
+            debugPrint(
+                "$tag Single Content Data =============> ${singleContentData!.toJson()}");
+
+            String link =
+                "https://profitfromit.co.in/course/$courseId/lesson/${singleContentData!.id}";
+
+            if (Platform.isIOS) {
+              shareBlog(
+                context,
+                singleContentData!.title ?? '',
+                link,
+              );
+            } else {
+              String shareMsg = "${singleContentData!.title}\n\n$link";
+              Share.share(shareMsg ?? '');
+            }
+          },
+        ),
+        body: isLoading
+            ? loading()
+            : Stack(
                 children: [
                   // details
                   Positioned.fill(
@@ -470,6 +1029,7 @@ class _SingleContentPageState extends State<SingleContentPage> {
                       physics: const BouncingScrollPhysics(),
                       padding: padding(),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           space(20),
@@ -483,44 +1043,47 @@ class _SingleContentPageState extends State<SingleContentPage> {
                             Container(
                               width: getSize().width,
                               padding: padding(vertical: 20, horizontal: 10),
-                              decoration: BoxDecoration(borderRadius: borderRadius(), border: Border.all(color: greyE7)),
+                              decoration: BoxDecoration(
+                                  borderRadius: borderRadius(),
+                                  border: Border.all(color: greyE7)),
                               child: Column(
                                 children: [
                                   SvgPicture.asset(AppAssets.accessDeniedSvg),
                                   Text(
                                     appText.accessDenied,
-                                    style: style16Bold().copyWith(color: grey33),
+                                    style:
+                                        style16Bold().copyWith(color: grey33),
                                   ),
                                   space(8),
                                   Text(
                                     appText.accessDeniedDesc,
-                                    style: style14Regular().copyWith(color: greyA5),
+                                    style: style14Regular()
+                                        .copyWith(color: greyA5),
                                     textAlign: TextAlign.center,
                                   ),
                                 ],
                               ),
                             )
                           } else ...{
-                            if ((singleContentData?.storage == 'upload' || singleContentData?.storage == 'external_link' || singleContentData?.storage == 's3') && videoFormats.contains(singleContentData?.fileType?.toLowerCase())) ...{
+                            if ((singleContentData?.storage == 'upload' ||
+                                    singleContentData?.storage ==
+                                        'external_link' ||
+                                    singleContentData?.storage == 's3') &&
+                                videoFormats.contains(singleContentData
+                                    ?.fileType
+                                    ?.toLowerCase())) ...{
                               space(20),
-                              CourseVideoPlayer(singleContentData?.file ?? '', '', Constants.contentRouteObserver),
+                              CourseVideoPlayer(singleContentData?.file ?? '',
+                                  '', Constants.contentRouteObserver),
                             },
-                            if (singleContentData?.storage == 'vimeo' || singleContentData?.storage == 'youtube') ...{
-
-                              player
-
-                              // youTubePlayerWidget()
-
-                              // PodVideoPlayerDev(
-                              //   singleContentData?.file ?? '',
-                              //   singleContentData?.storage ?? '',
-                              //   Constants.contentRouteObserver
-                              // )
+                            if (singleContentData?.storage == 'vimeo') ...{
+                              VimeoVideoPlayerWidget(
+                                singleContentData?.file ?? '',
+                              ),
                             },
                           },
 
                           space(20),
-
                           // info
                           Container(
                             padding: padding(),
@@ -534,30 +1097,64 @@ class _SingleContentPageState extends State<SingleContentPage> {
                                 SingleCourseWidget.courseStatus(
                                     appText.type,
                                     content?.type == 'file'
-                                        ? singleContentData?.fileType?.toString().toUpperCase() ?? ''
+                                        ? singleContentData?.fileType
+                                                ?.toString()
+                                                .toUpperCase() ??
+                                            ''
                                         : content?.type == 'session'
-                                        ? singleContentData?.sessionApi?.toString() ?? ''
-                                        : appText.text_lesson,
+                                            ? singleContentData?.sessionApi
+                                                    ?.toString() ??
+                                                ''
+                                            : appText.text_lesson,
                                     AppAssets.documentSvg,
                                     width: getSize().width * .38),
 
                                 if (singleContentData?.date != null) ...{
-                                  SingleCourseWidget.courseStatus(appText.startDate, timeStampToDate((singleContentData?.date ?? 0) * 1000).toString(), AppAssets.calendarSvg, width: getSize().width * .38),
+                                  SingleCourseWidget.courseStatus(
+                                      appText.startDate,
+                                      timeStampToDate(
+                                              (singleContentData?.date ?? 0) *
+                                                  1000)
+                                          .toString(),
+                                      AppAssets.calendarSvg,
+                                      width: getSize().width * .38),
                                 },
 
                                 if (singleContentData?.volume != null) ...{
-                                  SingleCourseWidget.courseStatus(appText.volume, singleContentData?.volume ?? '', AppAssets.paperDownloadSvg, width: getSize().width * .38),
+                                  SingleCourseWidget.courseStatus(
+                                      appText.volume,
+                                      singleContentData?.volume ?? '',
+                                      AppAssets.paperDownloadSvg,
+                                      width: getSize().width * .38),
                                 },
 
                                 if (singleContentData?.createdAt != null) ...{
-                                  SingleCourseWidget.courseStatus(appText.publishDate, timeStampToDate((singleContentData?.createdAt ?? 0) * 1000).toString(), AppAssets.calendarSvg, width: getSize().width * .38),
+                                  SingleCourseWidget.courseStatus(
+                                      appText.publishDate,
+                                      timeStampToDate(
+                                              (singleContentData?.createdAt ??
+                                                      0) *
+                                                  1000)
+                                          .toString(),
+                                      AppAssets.calendarSvg,
+                                      width: getSize().width * .38),
                                 },
 
                                 if (singleContentData?.duration != null) ...{
-                                  SingleCourseWidget.courseStatus(appText.duration, '${(singleContentData?.duration ?? 0)} ${appText.min}', AppAssets.timeSvg, width: getSize().width * .38),
+                                  SingleCourseWidget.courseStatus(
+                                      appText.duration,
+                                      '${(singleContentData?.duration ?? 0)} ${appText.min}',
+                                      AppAssets.timeSvg,
+                                      width: getSize().width * .38),
                                 },
 
-                                SingleCourseWidget.courseStatus(appText.downloadable, content?.downloadable == 1 ? appText.yes : appText.no, AppAssets.paperDownloadSvg, width: getSize().width * .38),
+                                SingleCourseWidget.courseStatus(
+                                    appText.downloadable,
+                                    content?.downloadable == 1
+                                        ? appText.yes
+                                        : appText.no,
+                                    AppAssets.paperDownloadSvg,
+                                    width: getSize().width * .38),
 
                                 // SingleCourseWidget.courseStatus(
                                 //   appText.type,
@@ -583,13 +1180,18 @@ class _SingleContentPageState extends State<SingleContentPage> {
                               customStylesBuilder: (element) {
                                 if (element.localName == 'img') {
                                   return {
+                                    'display': 'block',
+                                    'width': '100%',
                                     'max-width': '100%',
                                     'height': 'auto',
+                                    'max-height': '320px',
+                                    'object-fit': 'contain',
+                                    'border-radius': '16px',
+                                    'margin': '10px 0',
                                   };
                                 }
                                 return null;
                               },
-                              // factoryBuilder: () => CustomWidgetFactory(),
                               // textStyle: style14Regular().copyWith(color: greyA5),
                               onErrorBuilder: (context, element, error) {
                                 debugPrint("element ==============> $element");
@@ -610,7 +1212,8 @@ class _SingleContentPageState extends State<SingleContentPage> {
                             // toggle
                             SizedBox(
                               width: getSize().width,
-                              child: switchButton(appText.iHaveReadThisLesson, content?.authHasRead ?? false, (value) {
+                              child: switchButton(appText.iHaveReadThisLesson,
+                                  content?.authHasRead ?? false, (value) {
                                 setState(() {
                                   content?.authHasRead = value;
                                 });
@@ -620,8 +1223,8 @@ class _SingleContentPageState extends State<SingleContentPage> {
                                     content!.type == 'text_lesson'
                                         ? 'text_lesson_id'
                                         : content!.type == 'file'
-                                        ? 'file_id'
-                                        : 'session_id',
+                                            ? 'file_id'
+                                            : 'session_id',
                                     singleContentData!.id.toString(),
                                     value);
                               }),
@@ -630,7 +1233,9 @@ class _SingleContentPageState extends State<SingleContentPage> {
                             space(20),
                           },
 
-                          if (PublicData.apiConfigData?['course_notes_status'] == '1') ...{
+                          if (PublicData
+                                  .apiConfigData?['course_notes_status'] ==
+                              '1') ...{
                             // add note
                             Row(
                               children: [
@@ -639,7 +1244,10 @@ class _SingleContentPageState extends State<SingleContentPage> {
                                     child: button(
                                         onTap: () async {
                                           if (note == null) {
-                                            bool? res = await SingleCourseWidget.showAddNoteDialog(courseId!, singleContentData!.id!, text: note?.note);
+                                            bool? res = await SingleCourseWidget
+                                                .showAddNoteDialog(courseId!,
+                                                    singleContentData!.id!,
+                                                    text: note?.note);
 
                                             if (res ?? false) {
                                               getNote();
@@ -649,27 +1257,41 @@ class _SingleContentPageState extends State<SingleContentPage> {
                                               courseId!,
                                               singleContentData!.id!,
                                               note?.note ?? '',
-                                                  () async {
+                                              () async {
                                                 // onTapEdit
                                                 backRoute();
 
-                                                bool? res = await SingleCourseWidget.showAddNoteDialog(courseId!, singleContentData!.id!, text: note?.note);
+                                                bool? res =
+                                                    await SingleCourseWidget
+                                                        .showAddNoteDialog(
+                                                            courseId!,
+                                                            singleContentData!
+                                                                .id!,
+                                                            text: note?.note);
 
                                                 if (res ?? false) {
                                                   getNote();
                                                 }
                                               },
-                                                  () {
+                                              () {
                                                 // onTapAttachment
                                                 backRoute();
 
-                                                SingleCourseWidget.showNoteAttachmentDialog(() {
+                                                SingleCourseWidget
+                                                    .showNoteAttachmentDialog(
+                                                        () {
                                                   // onTapRemove
                                                 }, () {
                                                   // onTapDownload
-                                                  downloadSheet(note!.attachment!, note!.attachment!.split('/').last);
-                                                }, note?.attachment != null // hasFileForDownload
-                                                );
+                                                  downloadSheet(
+                                                      note!.attachment!,
+                                                      note!.attachment!
+                                                          .split('/')
+                                                          .last);
+                                                },
+                                                        note?.attachment !=
+                                                            null // hasFileForDownload
+                                                        );
                                               },
                                               note?.attachment != null,
                                             );
@@ -677,7 +1299,9 @@ class _SingleContentPageState extends State<SingleContentPage> {
                                         },
                                         width: getSize().width,
                                         height: 52,
-                                        text: note == null ? appText.addANote : appText.viewNote,
+                                        text: note == null
+                                            ? appText.addANote
+                                            : appText.viewNote,
                                         bgColor: Colors.white,
                                         textColor: green77(),
                                         borderColor: green77(),
@@ -706,21 +1330,35 @@ class _SingleContentPageState extends State<SingleContentPage> {
                           },
 
                           // attachments
-                          if (singleContentData?.attachments?.isNotEmpty ?? false) ...{
+                          if (singleContentData?.attachments?.isNotEmpty ??
+                              false) ...{
                             SizedBox(
                               width: getSize().width,
                               child: SingleChildScrollView(
                                 physics: const BouncingScrollPhysics(),
                                 child: Row(
                                   children: [
-                                    ...List.generate(singleContentData?.attachments?.length ?? 0, (index) {
+                                    ...List.generate(
+                                        singleContentData
+                                                ?.attachments?.length ??
+                                            0, (index) {
                                       return horizontalChapterItem(
                                         green50,
                                         AppAssets.paperDownloadSvg,
-                                        singleContentData?.attachments?[index].title ?? '',
-                                        singleContentData?.attachments?[index].volume ?? '',
-                                            () {
-                                          downloadSheet('${Constants.baseUrl}files/${content?.id}/download', singleContentData?.attachments?[index].file?.split('/').last ?? '');
+                                        singleContentData
+                                                ?.attachments?[index].title ??
+                                            '',
+                                        singleContentData
+                                                ?.attachments?[index].volume ??
+                                            '',
+                                        () {
+                                          downloadSheet(
+                                              '${Constants.baseUrl}files/${content?.id}/download',
+                                              singleContentData
+                                                      ?.attachments?[index].file
+                                                      ?.split('/')
+                                                      .last ??
+                                                  '');
                                         },
                                       );
                                     })
@@ -766,366 +1404,25 @@ class _SingleContentPageState extends State<SingleContentPage> {
                             ].contains(content?.storage ?? '')))) ...{
                       pageButton(
                           showViewButton: ([
-                            'upload_archive',
-                            'external_link',
-                            'google_drive',
-                            'iframe',
-                            'secure_host',
-                          ].contains(content?.storage ?? '')))
+                        'upload_archive',
+                        'external_link',
+                        'google_drive',
+                        'iframe',
+                        'secure_host',
+                      ].contains(content?.storage ?? '')))
                     } else if (content?.type != 'file') ...{
                       pageButton(),
                     }
                   }
                 ],
               ),
-            );
-          },);
-      }
-    } else {
-      return  Scaffold(
-        appBar: appbar(
-          title: appText.courseDetails,
-          rightIcon: AppAssets.shareSvg,
-
-          onTapRightIcon: () {
-          
-            debugPrint("$tag Single course id ========> ${courseId.toString()}");
-            debugPrint("$tag Single content ========> ${content?.toJson()}");
-            debugPrint("$tag Single Content Data =============> ${singleContentData!.toJson()}");
-         
-            String link = "https://profitfromit.co.in/course/$courseId/lesson/${singleContentData!.id}";
-         
-         
-         
-            if(Platform.isIOS) {
-              shareBlog(
-                context,
-                singleContentData!.title ?? '',
-                link,
-              );
-            } else {
-              String shareMsg = "${singleContentData!.title}\n\n$link";
-              Share.share(shareMsg ?? '');
-            }
-          },
-        ),
-        body: isLoading
-            ? loading()
-            : Stack(
-          children: [
-            // details
-            Positioned.fill(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: padding(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    space(20),
-                    Text(
-                      singleContentData?.title ?? '',
-                      style: style16Bold(),
-                    ),
-
-                    if (isDripContent) ...{
-                      space(20),
-                      Container(
-                        width: getSize().width,
-                        padding: padding(vertical: 20, horizontal: 10),
-                        decoration: BoxDecoration(borderRadius: borderRadius(), border: Border.all(color: greyE7)),
-                        child: Column(
-                          children: [
-                            SvgPicture.asset(AppAssets.accessDeniedSvg),
-                            Text(
-                              appText.accessDenied,
-                              style: style16Bold().copyWith(color: grey33),
-                            ),
-                            space(8),
-                            Text(
-                              appText.accessDeniedDesc,
-                              style: style14Regular().copyWith(color: greyA5),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      )
-                    } else ...{
-                      if ((singleContentData?.storage == 'upload' || singleContentData?.storage == 'external_link' || singleContentData?.storage == 's3') && videoFormats.contains(singleContentData?.fileType?.toLowerCase())) ...{
-                        space(20),
-                        CourseVideoPlayer(singleContentData?.file ?? '', '', Constants.contentRouteObserver),
-                      },
-                      if (singleContentData?.storage == 'vimeo') ...{
-                              VimeoVideoPlayerWidget(
-                                singleContentData?.file ?? '',
-                              ),
-                            },
-                    },
-
-                    space(20),
-                    // info
-                    Container(
-                      padding: padding(),
-                      width: getSize().width,
-                      child: Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        runAlignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        runSpacing: 21,
-                        children: [
-                          SingleCourseWidget.courseStatus(
-                              appText.type,
-                              content?.type == 'file'
-                                  ? singleContentData?.fileType?.toString().toUpperCase() ?? ''
-                                  : content?.type == 'session'
-                                  ? singleContentData?.sessionApi?.toString() ?? ''
-                                  : appText.text_lesson,
-                              AppAssets.documentSvg,
-                              width: getSize().width * .38),
-
-                          if (singleContentData?.date != null) ...{
-                            SingleCourseWidget.courseStatus(appText.startDate, timeStampToDate((singleContentData?.date ?? 0) * 1000).toString(), AppAssets.calendarSvg, width: getSize().width * .38),
-                          },
-
-                          if (singleContentData?.volume != null) ...{
-                            SingleCourseWidget.courseStatus(appText.volume, singleContentData?.volume ?? '', AppAssets.paperDownloadSvg, width: getSize().width * .38),
-                          },
-
-                          if (singleContentData?.createdAt != null) ...{
-                            SingleCourseWidget.courseStatus(appText.publishDate, timeStampToDate((singleContentData?.createdAt ?? 0) * 1000).toString(), AppAssets.calendarSvg, width: getSize().width * .38),
-                          },
-
-                          if (singleContentData?.duration != null) ...{
-                            SingleCourseWidget.courseStatus(appText.duration, '${(singleContentData?.duration ?? 0)} ${appText.min}', AppAssets.timeSvg, width: getSize().width * .38),
-                          },
-
-                          SingleCourseWidget.courseStatus(appText.downloadable, content?.downloadable == 1 ? appText.yes : appText.no, AppAssets.paperDownloadSvg, width: getSize().width * .38),
-
-                          // SingleCourseWidget.courseStatus(
-                          //   appText.type,
-                          //   courseData.type ?? '',
-                          //   AppAssets.moreSvg,
-                          //   width: getSize().width * .38
-                          // ),
-
-                          // SingleCourseWidget.courseStatus(
-                          //   appText.status,
-                          //   courseData.status ?? '',
-                          //   AppAssets.moreSvg,
-                          //   width: getSize().width * .38
-                          // ),
-                        ],
-                      ),
-                    ),
-
-                    if (content?.type == 'text_lesson') ...{
-                      space(20),
-                      HtmlWidget(
-                        singleContentData?.content ?? '',
-                        customStylesBuilder: (element) {
-                          if (element.localName == 'img') {
-                            return {
-                              'max-width': '100%',
-                              'height': 'auto',
-                            };
-                          }
-                          return null;
-                        },
-                        // textStyle: style14Regular().copyWith(color: greyA5),
-                        onErrorBuilder: (context, element, error) {
-                          debugPrint("element ==============> $element");
-                          debugPrint("error ==============> $error");
-                        },
-                      ),
-                    } else ...{
-                      space(20),
-                      Text(
-                        singleContentData?.description ?? '',
-                        style: style14Regular().copyWith(color: greyA5),
-                      ),
-                    },
-
-                    space(20),
-
-                    if (!isDripContent) ...{
-                      // toggle
-                      SizedBox(
-                        width: getSize().width,
-                        child: switchButton(appText.iHaveReadThisLesson, content?.authHasRead ?? false, (value) {
-                          setState(() {
-                            content?.authHasRead = value;
-                          });
-
-                          CourseService.toggle(
-                              courseId!,
-                              content!.type == 'text_lesson'
-                                  ? 'text_lesson_id'
-                                  : content!.type == 'file'
-                                  ? 'file_id'
-                                  : 'session_id',
-                              singleContentData!.id.toString(),
-                              value);
-                        }),
-                      ),
-
-                      space(20),
-                    },
-
-                    if (PublicData.apiConfigData?['course_notes_status'] == '1') ...{
-                      // add note
-                      Row(
-                        children: [
-                          // add a note
-                          Expanded(
-                              child: button(
-                                  onTap: () async {
-                                    if (note == null) {
-                                      bool? res = await SingleCourseWidget.showAddNoteDialog(courseId!, singleContentData!.id!, text: note?.note);
-
-                                      if (res ?? false) {
-                                        getNote();
-                                      }
-                                    } else {
-                                      SingleCourseWidget.viewNoteDialog(
-                                        courseId!,
-                                        singleContentData!.id!,
-                                        note?.note ?? '',
-                                            () async {
-                                          // onTapEdit
-                                          backRoute();
-
-                                          bool? res = await SingleCourseWidget.showAddNoteDialog(courseId!, singleContentData!.id!, text: note?.note);
-
-                                          if (res ?? false) {
-                                            getNote();
-                                          }
-                                        },
-                                            () {
-                                          // onTapAttachment
-                                          backRoute();
-
-                                          SingleCourseWidget.showNoteAttachmentDialog(() {
-                                            // onTapRemove
-                                          }, () {
-                                            // onTapDownload
-                                            downloadSheet(note!.attachment!, note!.attachment!.split('/').last);
-                                          }, note?.attachment != null // hasFileForDownload
-                                          );
-                                        },
-                                        note?.attachment != null,
-                                      );
-                                    }
-                                  },
-                                  width: getSize().width,
-                                  height: 52,
-                                  text: note == null ? appText.addANote : appText.viewNote,
-                                  bgColor: Colors.white,
-                                  textColor: green77(),
-                                  borderColor: green77(),
-                                  raduis: 15)),
-
-                          if (note != null) ...{
-                            space(0, width: 16),
-                            button(
-                                onTap: () {
-                                  PersonalNoteService.delete(note!.id!);
-                                  note = null;
-                                  setState(() {});
-                                },
-                                width: 52,
-                                height: 52,
-                                text: '',
-                                bgColor: Colors.transparent,
-                                textColor: Colors.white,
-                                borderColor: red49,
-                                iconPath: AppAssets.delete2Svg,
-                                iconColor: red49,
-                                raduis: 20)
-                          }
-                        ],
-                      ),
-                    },
-
-                    // attachments
-                    if (singleContentData?.attachments?.isNotEmpty ?? false) ...{
-                      SizedBox(
-                        width: getSize().width,
-                        child: SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          child: Row(
-                            children: [
-                              ...List.generate(singleContentData?.attachments?.length ?? 0, (index) {
-                                return horizontalChapterItem(
-                                  green50,
-                                  AppAssets.paperDownloadSvg,
-                                  singleContentData?.attachments?[index].title ?? '',
-                                  singleContentData?.attachments?[index].volume ?? '',
-                                      () {
-                                    downloadSheet('${Constants.baseUrl}files/${content?.id}/download', singleContentData?.attachments?[index].file?.split('/').last ?? '');
-                                  },
-                                );
-                              })
-                            ],
-                          ),
-                        ),
-                      )
-                    },
-
-                    if (contentListIndex < contentList.length - 1) ...{
-                      button(
-                        onTap: () {
-                          checkNextVideo();
-                        },
-                        width: getSize().width,
-                        height: 52,
-                        text: appText.next,
-                        bgColor: green77(),
-                        textColor: Colors.white,
-                        raduis: 15,
-                      ),
-                      space(20),
-                    },
-
-                    space(200),
-                  ],
-                ),
-              ),
-            ),
-
-            // button
-            if (!isDripContent) ...{
-              if (content?.fileType == 'pdf') ...{
-                pageButton(),
-              } else if (content?.downloadable == 1 ||
-                  (content?.type == 'file' &&
-                      ([
-                        'upload_archive',
-                        'external_link',
-                        'google_drive',
-                        'iframe',
-                        'secure_host',
-                      ].contains(content?.storage ?? '')))) ...{
-                pageButton(
-                    showViewButton: ([
-                      'upload_archive',
-                      'external_link',
-                      'google_drive',
-                      'iframe',
-                      'secure_host',
-                    ].contains(content?.storage ?? '')))
-              } else if (content?.type != 'file') ...{
-                pageButton(),
-              }
-            }
-          ],
-        ),
       );
     }
   }
 
   @override
   void dispose() {
-    if(_playerController != null) {
+    if (_playerController != null) {
       _playerController!.dispose();
     }
     super.dispose();
@@ -1133,7 +1430,7 @@ class _SingleContentPageState extends State<SingleContentPage> {
 
   @override
   void deactivate() {
-    if(_playerController != null) {
+    if (_playerController != null) {
       _playerController!.pause();
     }
     super.deactivate();
@@ -1150,7 +1447,10 @@ class _SingleContentPageState extends State<SingleContentPage> {
 
       Future.wait([getData(), getPreviousData(), getNote()]).then((value) {
         if (previousContentData != null) {
-          if (singleContentData?.checkPreviousParts == 1 && (!(previousContentData?.authHasRead ?? true) || !(previousContentData?.passed ?? true) || (previousContentData?.assignmentStatus != 'passed'))) {
+          if (singleContentData?.checkPreviousParts == 1 &&
+              (!(previousContentData?.authHasRead ?? true) ||
+                  !(previousContentData?.passed ?? true) ||
+                  (previousContentData?.assignmentStatus != 'passed'))) {
             isDripContent = true;
           }
         }

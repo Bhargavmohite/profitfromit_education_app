@@ -123,7 +123,27 @@ class SingleCourseWidget {
             ),
             child: SingleChildScrollView(
               physics: const NeverScrollableScrollPhysics(),
-              child: HtmlWidget(courseData.description ?? ''),
+              child: HtmlWidget(
+                courseData.description ?? '',
+                customStylesBuilder: (element) {
+                  // Some course descriptions contain images uploaded from the
+                  // web editor. Keep those images responsive instead of using
+                  // their original (often very large) dimensions.
+                  if (element.localName == 'img') {
+                    return {
+                      'display': 'block',
+                      'width': '100%',
+                      'max-width': '100%',
+                      'height': 'auto',
+                      'max-height': '280px',
+                      'object-fit': 'contain',
+                      'border-radius': '16px',
+                      'margin': '10px 0',
+                    };
+                  }
+                  return null;
+                },
+              ),
             ),
           ),
 

@@ -9,6 +9,7 @@ import 'package:webinar/app/pages/main_page/home_page/certificates_page/certific
 import 'package:webinar/app/pages/main_page/home_page/events_page/events_page.dart';
 import 'package:webinar/app/pages/main_page/home_page/financial_page/financial_page.dart';
 import 'package:webinar/app/pages/main_page/home_page/meetings_page/meetings_page.dart';
+import 'package:webinar/app/pages/main_page/live_market_page/live_market_page.dart';
 import 'package:webinar/app/pages/main_page/home_page/setting_page/setting_page.dart';
 import 'package:webinar/app/pages/main_page/products_page/products_page.dart';
 import 'package:webinar/app/providers/app_language_provider.dart';
@@ -182,6 +183,14 @@ class _MainDrawerState extends State<MainDrawer> {
                             if (hasAccess(canRedirect: true)) {
                               nextRoute(DashboardPage.pageName);
                             }
+                          }),
+
+                          // Live Market
+                          menuItemIcon(
+                              "Live Market", Icons.stacked_line_chart_rounded,
+                              () {
+                            drawerController.hideDrawer();
+                            nextRoute(LiveMarketPage.pageName);
                           }),
 
                           //use courses
