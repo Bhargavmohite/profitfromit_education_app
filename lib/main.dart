@@ -88,6 +88,8 @@ import 'app/pages/main_page/home_page/support_message_page/conversation_page.dar
 import 'app/pages/main_page/home_page/support_message_page/support_message_page.dart';
 import 'app/pages/main_page/main_page.dart';
 import 'app/pages/main_page/live_market_page/live_market_page.dart';
+import 'app/pages/main_page/live_dashboard_page/live_dashboard_page.dart';
+import 'app/pages/main_page/q1_fy27_page/q1_fy27_page.dart';
 import 'app/pages/main_page/providers_page/user_profile_page/user_profile_page.dart';
 import 'app/providers/app_language_provider.dart';
 import 'app/providers/filter_course_provider.dart';
@@ -310,6 +312,8 @@ class _MyAppState extends State<MyApp> {
           FavoritesPage.pageName: (context) => const FavoritesPage(),
           DashboardPage.pageName: (context) => const DashboardPage(),
           LiveMarketPage.pageName: (context) => const LiveMarketPage(),
+          LiveDashboardPage.pageName: (context) => const LiveDashboardPage(),
+          Q1FY27Page.pageName: (context) => const Q1FY27Page(),
           SupportMessagePage.pageName: (context) => const SupportMessagePage(),
           ConversationPage.pageName: (context) => const ConversationPage(),
           PdfViewerPage.pageName: (context) => const PdfViewerPage(),
