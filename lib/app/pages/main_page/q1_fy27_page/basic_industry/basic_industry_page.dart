@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field, unused_element
+
 import 'package:flutter/material.dart';
 
 class BasicIndustryPage extends StatefulWidget {
@@ -439,12 +441,12 @@ class _BasicIndustryPageState extends State<BasicIndustryPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(13, 14, 13, 8),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(13, 14, 13, 8),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -468,8 +470,8 @@ class _BasicIndustryPageState extends State<BasicIndustryPage> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                const Text(
+                SizedBox(width: 8),
+                Text(
                   '159 of 159 Industries',
                   style: TextStyle(
                     color: _muted,
@@ -731,10 +733,10 @@ class _BasicIndustryPageState extends State<BasicIndustryPage> {
             ),
           ),
           const SizedBox(height: 15),
-          Wrap(
+          const Wrap(
             spacing: 7,
             runSpacing: 7,
-            children: const <Widget>[
+            children: <Widget>[
               _HeroChip(icon: Icons.business_rounded, text: '1,117 Companies'),
               _HeroChip(icon: Icons.category_rounded, text: '12 Sectors'),
               _HeroChip(icon: Icons.folder_rounded, text: '159 Industries'),

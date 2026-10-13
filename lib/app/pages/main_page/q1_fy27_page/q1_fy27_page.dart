@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field, unused_element
+
 import 'package:flutter/material.dart';
 import 'package:webinar/config/colors.dart';
 import 'macro_economic_sector/macro_economic_sector_page.dart';
@@ -488,10 +490,10 @@ class _Q1FY27PageState extends State<Q1FY27Page> {
             ),
           ),
           const SizedBox(height: 15),
-          Wrap(
+          const Wrap(
             spacing: 7,
             runSpacing: 7,
-            children: const <Widget>[
+            children: <Widget>[
               _HeroChip(icon: Icons.business_rounded, text: '1,117 Companies'),
               _HeroChip(icon: Icons.category_rounded, text: '12 Sectors'),
               _HeroChip(icon: Icons.folder_rounded, text: '159 Industries'),

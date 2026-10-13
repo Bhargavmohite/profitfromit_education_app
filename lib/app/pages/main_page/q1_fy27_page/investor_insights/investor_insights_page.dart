@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -1191,7 +1193,7 @@ class InvestorInsightsPage extends StatelessWidget {
   }
 
   String _profitGrowthFromMeta(String meta) {
-    final String marker = 'Profit growth ';
+    const String marker = 'Profit growth ';
     final int index = meta.indexOf(marker);
     if (index < 0) {
       return '—';
@@ -1259,18 +1261,18 @@ class InvestorInsightsPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          AspectRatio(
+          const AspectRatio(
             aspectRatio: 1.65,
             child: CustomPaint(
-              painter: const _SectorHealthPainter(),
-              child: const SizedBox.expand(),
+              painter: _SectorHealthPainter(),
+              child: SizedBox.expand(),
             ),
           ),
           const SizedBox(height: 10),
-          Wrap(
+          const Wrap(
             spacing: 9,
             runSpacing: 7,
-            children: const <Widget>[
+            children: <Widget>[
               _SectorLegend('Financial Services', Color(0xFF4169C1)),
               _SectorLegend('Consumer Discretionary', Color(0xFFE85D55)),
               _SectorLegend('Industrials', Color(0xFF3FA86C)),
@@ -1380,10 +1382,10 @@ class InvestorInsightsPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 15),
-          Wrap(
+          const Wrap(
             spacing: 7,
             runSpacing: 7,
-            children: const <Widget>[
+            children: <Widget>[
               _HeroChip(icon: Icons.business_rounded, text: '1,117 Companies'),
               _HeroChip(icon: Icons.category_rounded, text: '12 Sectors'),
               _HeroChip(icon: Icons.folder_rounded, text: '159 Industries'),

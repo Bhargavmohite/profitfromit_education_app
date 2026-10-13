@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field, unused_element
+
 import 'package:flutter/material.dart';
 
 class MacroEconomicSectorPage extends StatelessWidget {
@@ -802,10 +804,10 @@ class MacroEconomicSectorPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 15),
-          Wrap(
+          const Wrap(
             spacing: 7,
             runSpacing: 7,
-            children: const <Widget>[
+            children: <Widget>[
               _HeroChip(icon: Icons.business_rounded, text: '1,117 Companies'),
               _HeroChip(icon: Icons.category_rounded, text: '12 Sectors'),
               _HeroChip(icon: Icons.folder_rounded, text: '159 Industries'),
