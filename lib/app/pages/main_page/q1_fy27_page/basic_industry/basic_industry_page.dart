@@ -1,9 +1,10 @@
-// ignore_for_file: unused_field, unused_element
-
 import 'package:flutter/material.dart';
+import 'package:webinar/app/models/q1_fy27_dashboard_model.dart';
 
 class BasicIndustryPage extends StatefulWidget {
-  const BasicIndustryPage({super.key});
+  const BasicIndustryPage({super.key, required this.data});
+
+  final Q1FY27DashboardData data;
 
   @override
   State<BasicIndustryPage> createState() => _BasicIndustryPageState();
@@ -85,203 +86,26 @@ class _BasicIndustryPageState extends State<BasicIndustryPage> {
     ),
   ];
 
-  static const List<_IndustryData> _industries = <_IndustryData>[
-    _IndustryData(
-      industry: 'Private Sector Bank',
-      sector: 'Financial Services',
-      companies: 20,
-      allCapCompanies: 18,
-      marketCap: '₹33.66 L Cr',
-      sales: '₹3,68,371 Cr',
-      profit: '₹57,622 Cr',
-      salesGrowth: 6.00,
-      profitGrowth: 19.80,
-      margin: 15.64,
-      marginDelta: 1.10,
-    ),
-    _IndustryData(
-      industry: 'Pharmaceuticals',
-      sector: 'Healthcare',
-      companies: 173,
-      allCapCompanies: 67,
-      marketCap: '₹25.75 L Cr',
-      sales: '₹1,19,717 Cr',
-      profit: '₹16,235 Cr',
-      salesGrowth: 15.30,
-      profitGrowth: 8.80,
-      margin: 13.56,
-      marginDelta: 0.42,
-    ),
-    _IndustryData(
-      industry: 'Computers - Software & Consulting',
-      sector: 'Information Technology',
-      companies: 69,
-      allCapCompanies: 25,
-      marketCap: '₹22.04 L Cr',
-      sales: '₹2,40,181 Cr',
-      profit: '₹35,260 Cr',
-      salesGrowth: 15.39,
-      profitGrowth: 9.60,
-      margin: 14.68,
-      marginDelta: -0.31,
-    ),
-    _IndustryData(
-      industry: 'Refineries & Marketing',
-      sector: 'Energy',
-      companies: 13,
-      allCapCompanies: 5,
-      marketCap: '₹19.66 L Cr',
-      sales: '₹9,42,012 Cr',
-      profit: '₹12,131 Cr',
-      salesGrowth: 26.86,
-      profitGrowth: -73.80,
-      margin: 1.29,
-      marginDelta: -3.82,
-    ),
-    _IndustryData(
-      industry: 'Public Sector Bank',
-      sector: 'Financial Services',
-      companies: 12,
-      allCapCompanies: 11,
-      marketCap: '₹17.09 L Cr',
-      sales: '₹4,07,443 Cr',
-      profit: '₹53,353 Cr',
-      salesGrowth: 6.16,
-      profitGrowth: 24.40,
-      margin: 13.09,
-      marginDelta: 1.52,
-    ),
-    _IndustryData(
-      industry: 'Telecom - Cellular & Fixed line services',
-      sector: 'Telecommunication',
-      companies: 8,
-      allCapCompanies: 5,
-      marketCap: '₹13.18 L Cr',
-      sales: '₹79,623 Cr',
-      profit: '₹6,800 Cr',
-      salesGrowth: 15.41,
-      profitGrowth: 184.0,
-      margin: 8.54,
-      marginDelta: 5.70,
-    ),
-    _IndustryData(
-      industry: 'Heavy Electrical Equipment',
-      sector: 'Industrials',
-      companies: 41,
-      allCapCompanies: 26,
-      marketCap: '₹11.68 L Cr',
-      sales: '₹41,898 Cr',
-      profit: '₹5,671 Cr',
-      salesGrowth: 23.31,
-      profitGrowth: 105.0,
-      margin: 13.54,
-      marginDelta: 4.10,
-    ),
-    _IndustryData(
-      industry: 'Non Banking Financial Company (NBFC)',
-      sector: 'Financial Services',
-      companies: 222,
-      allCapCompanies: 24,
-      marketCap: '₹10.89 L Cr',
-      sales: '₹1,02,679 Cr',
-      profit: '₹23,088 Cr',
-      salesGrowth: 20.69,
-      profitGrowth: 40.20,
-      margin: 22.49,
-      marginDelta: 2.32,
-    ),
-    _IndustryData(
-      industry: 'Passenger Cars & Utility Vehicles',
-      sector: 'Consumer Discretionary',
-      companies: 8,
-      allCapCompanies: 5,
-      marketCap: '₹10.59 L Cr',
-      sales: '₹2,23,367 Cr',
-      profit: '₹11,220 Cr',
-      salesGrowth: 18.45,
-      profitGrowth: -16.50,
-      margin: 5.02,
-      marginDelta: -1.26,
-    ),
-    _IndustryData(
-      industry: 'Cement & Cement Products',
-      sector: 'Commodities',
-      companies: 38,
-      allCapCompanies: 19,
-      marketCap: '₹8.85 L Cr',
-      sales: '₹1,20,844 Cr',
-      profit: '₹9,134 Cr',
-      salesGrowth: 12.72,
-      profitGrowth: 27.40,
-      margin: 7.56,
-      marginDelta: 0.81,
-    ),
-    _IndustryData(
-      industry: 'Power Generation',
-      sector: 'Utilities',
-      companies: 35,
-      allCapCompanies: 13,
-      marketCap: '₹8.79 L Cr',
-      sales: '₹79,923 Cr',
-      profit: '₹11,696 Cr',
-      salesGrowth: 10.80,
-      profitGrowth: 6.60,
-      margin: 14.63,
-      marginDelta: 0.19,
-    ),
-    _IndustryData(
-      industry: '2/3 Wheelers',
-      sector: 'Consumer Discretionary',
-      companies: 9,
-      allCapCompanies: 6,
-      marketCap: '₹8.71 L Cr',
-      sales: '₹59,414 Cr',
-      profit: '₹6,741 Cr',
-      salesGrowth: 42.87,
-      profitGrowth: 30.30,
-      margin: 11.35,
-      marginDelta: 1.88,
-    ),
-    _IndustryData(
-      industry: 'Iron & Steel',
-      sector: 'Commodities',
-      companies: 14,
-      allCapCompanies: 11,
-      marketCap: '₹8.60 L Cr',
-      sales: '₹1,71,307 Cr',
-      profit: '₹11,873 Cr',
-      salesGrowth: 12.15,
-      profitGrowth: 56.80,
-      margin: 6.93,
-      marginDelta: 1.67,
-    ),
-    _IndustryData(
-      industry: 'Auto Components & Equipments',
-      sector: 'Consumer Discretionary',
-      companies: 116,
-      allCapCompanies: 37,
-      marketCap: '₹8.05 L Cr',
-      sales: '₹1,04,617 Cr',
-      profit: '₹7,820 Cr',
-      salesGrowth: 14.60,
-      profitGrowth: 13.70,
-      margin: 7.47,
-      marginDelta: 0.38,
-    ),
-    _IndustryData(
-      industry: 'Diversified FMCG',
-      sector: 'Fast Moving Consumer Goods',
-      companies: 11,
-      allCapCompanies: 7,
-      marketCap: '₹7.72 L Cr',
-      sales: '₹89,540 Cr',
-      profit: '₹9,148 Cr',
-      salesGrowth: 17.10,
-      profitGrowth: -12.60,
-      margin: 10.22,
-      marginDelta: -1.44,
-    ),
-  ];
+  List<_IndustryData> get _industries {
+    final List<Q1Industry> rows = List<Q1Industry>.from(widget.data.industries)
+      ..sort(
+          (Q1Industry a, Q1Industry b) => b.marketCap.compareTo(a.marketCap));
+    return rows.map((Q1Industry item) {
+      return _IndustryData(
+        industry: item.name,
+        sector: item.sector.isEmpty ? 'Unclassified' : item.sector,
+        companies: item.companies,
+        allCapCompanies: item.allCapCompanies,
+        marketCap: Q1Format.marketCap(item.marketCap),
+        sales: Q1Format.crore(item.salesFY27),
+        profit: Q1Format.crore(item.profitFY27),
+        salesGrowth: item.salesGrowth ?? 0,
+        profitGrowth: item.profitGrowth ?? 0,
+        margin: item.marginFY27,
+        marginDelta: item.marginChange ?? 0,
+      );
+    }).toList();
+  }
 
   List<_IndustryData> get _filteredIndustries {
     final String q = _query.trim().toLowerCase();
@@ -378,7 +202,7 @@ class _BasicIndustryPageState extends State<BasicIndustryPage> {
             ],
           ),
           const SizedBox(height: 15),
-          ..._industries.map(_industryGrowthRow),
+          ..._industries.take(15).map(_industryGrowthRow),
           const SizedBox(height: 6),
           const Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -441,12 +265,12 @@ class _BasicIndustryPageState extends State<BasicIndustryPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const Padding(
-            padding: EdgeInsets.fromLTRB(13, 14, 13, 8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(13, 14, 13, 8),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Expanded(
+                const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -470,10 +294,10 @@ class _BasicIndustryPageState extends State<BasicIndustryPage> {
                     ],
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
-                  '159 of 159 Industries',
-                  style: TextStyle(
+                  '${_filteredIndustries.length} of ${_industries.length} Industries',
+                  style: const TextStyle(
                     color: _muted,
                     fontSize: 7.5,
                     fontWeight: FontWeight.w700,
@@ -1041,7 +865,7 @@ class _BasicIndustryPageState extends State<BasicIndustryPage> {
           ),
           const SizedBox(height: 2),
           Text(
-            'NIFTY ALLCAP Q1 FY27 workbook',
+            widget.data.meta.source,
             style: TextStyle(
               color: Colors.white.withValues(alpha: .65),
               fontSize: 8,
@@ -1058,7 +882,7 @@ class _BasicIndustryPageState extends State<BasicIndustryPage> {
           ),
           const SizedBox(height: 2),
           Text(
-            '1,117 companies • 12 sectors • 159 industries',
+            '${widget.data.companies.length} companies • ${widget.data.sectors.length} sectors • ${widget.data.industries.length} industries',
             style: TextStyle(
               color: Colors.white.withValues(alpha: .65),
               fontSize: 8,

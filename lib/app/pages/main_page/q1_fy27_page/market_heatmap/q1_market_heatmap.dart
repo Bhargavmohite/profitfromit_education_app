@@ -2,9 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:webinar/app/models/q1_fy27_dashboard_model.dart';
 
 class Q1MarketHeatmap extends StatefulWidget {
-  const Q1MarketHeatmap({super.key});
+  const Q1MarketHeatmap({super.key, required this.data});
+
+  final Q1FY27DashboardData data;
 
   @override
   State<Q1MarketHeatmap> createState() => _Q1MarketHeatmapState();
@@ -19,95 +22,58 @@ class _Q1MarketHeatmapState extends State<Q1MarketHeatmap> {
   static const Color _green = Color(0xFF067647);
   static const Color _red = Color(0xFFB42318);
 
-  static const List<_HeatCompany> _companies = <_HeatCompany>[
-    _HeatCompany('HDFCBANK', 'Financial Services', 18.37, 10),
-    _HeatCompany('ICICIBANK', 'Financial Services', 13.88, 9),
-    _HeatCompany('SBIN', 'Financial Services', 13.65, 8),
-    _HeatCompany('KOTAK', 'Financial Services', 22.54, 6),
-    _HeatCompany(
-      'TATACAP',
-      'Financial Services',
-      56.39,
-      4.2,
-      name: 'Tata Capital Limited',
-      bseCode: '544574',
-      industry: 'Non Banking Financial Company (NBFC)',
-      price: '₹327.50',
-      marketCap: '₹1.38 L Cr',
-      allCapWeight: '0.333%',
-      industryRank: '#2',
-      industryCount: '24',
-      salesFY26: '₹7,692 Cr',
-      salesFY27: '₹8,825 Cr',
-      salesGrowth: 14.73,
-      netProfitFY26: '₹1,041 Cr',
-      netProfitFY27: '₹1,628 Cr',
-      marginFY26: '13.53%',
-      marginFY27: '18.45%',
-      marginDelta: 4.91,
-    ),
-    _HeatCompany('AXISBANK', 'Financial Services', 22.32, 6),
-    _HeatCompany('BAJFIN', 'Financial Services', -18.16, 4),
-    _HeatCompany('LICI', 'Financial Services', 23.98, 4),
-    _HeatCompany('PFC', 'Financial Services', 0.33, 3),
-    _HeatCompany('SHRIRAMFIN', 'Financial Services', 59.89, 3),
-    _HeatCompany('UNIONBANK', 'Financial Services', 27.39, 2),
-    _HeatCompany('BSE', 'Financial Services', 65.97, 2),
-    _HeatCompany('PNB', 'Financial Services', 91.43, 2),
-    _HeatCompany('TITAN', 'Consumer Discretionary', 62.88, 7),
-    _HeatCompany('BAJAJ-AUTO', 'Consumer Discretionary', 44.30, 5),
-    _HeatCompany('MARUTI', 'Consumer Discretionary', -9.03, 7),
-    _HeatCompany('M&M', 'Consumer Discretionary', 37.03, 6),
-    _HeatCompany('ETERNAL', 'Consumer Discretionary', 26.80, 5),
-    _HeatCompany('DMART', 'Consumer Discretionary', 11.25, 4),
-    _HeatCompany('EICHERMOT', 'Consumer Discretionary', 21.41, 3),
-    _HeatCompany('TVSMOTOR', 'Consumer Discretionary', 64.54, 3),
-    _HeatCompany('LT', 'Industrials', 15.19, 10),
-    _HeatCompany('HAL', 'Industrials', 14.88, 8),
-    _HeatCompany('BEL', 'Industrials', 8.77, 7),
-    _HeatCompany('BHEL', 'Industrials', -18.26, 4),
-    _HeatCompany('ABB', 'Industrials', 2.84, 4),
-    _HeatCompany('CUMMINS', 'Industrials', 6.32, 3),
-    _HeatCompany('SIEMENS', 'Industrials', 35.16, 3),
-    _HeatCompany('POLYCAB', 'Industrials', 22.31, 3),
-    _HeatCompany('ADANIENT', 'Commodities', -249.69, 8),
-    _HeatCompany('ULTRACEMCO', 'Commodities', 17.24, 6),
-    _HeatCompany('JSWSTEEL', 'Commodities', 112.58, 6),
-    _HeatCompany('HINDZINC', 'Commodities', 144.81, 5),
-    _HeatCompany('GRASIM', 'Commodities', 38.79, 5),
-    _HeatCompany('TATASTEEL', 'Commodities', -14.60, 4),
-    _HeatCompany('SUNPHARMA', 'Healthcare', 26.40, 9),
-    _HeatCompany('DIVISLAB', 'Healthcare', 65.50, 5),
-    _HeatCompany('DRREDDY', 'Healthcare', 3.28, 5),
-    _HeatCompany('CIPLA', 'Healthcare', -39.16, 4),
-    _HeatCompany('LUPIN', 'Healthcare', 16.05, 4),
-    _HeatCompany('APOLLOHOSP', 'Healthcare', 13.32, 3),
-    _HeatCompany('TCS', 'Information Technology', 4.69, 10),
-    _HeatCompany('HCLTECH', 'Information Technology', 20.34, 7),
-    _HeatCompany('INFY', 'Information Technology', 12.29, 8),
-    _HeatCompany('TECHM', 'Information Technology', 31.62, 4),
-    _HeatCompany('LTIM', 'Information Technology', 17.05, 4),
-    _HeatCompany('WIPRO', 'Information Technology', 0.60, 4),
-    _HeatCompany('RELIANCE', 'Energy', -15.00, 16),
-    _HeatCompany('ONGC', 'Energy', -43.26, 7),
-    _HeatCompany('COALINDIA', 'Energy', 0.71, 6),
-    _HeatCompany('GAIL', 'Energy', 96.10, 4),
-    _HeatCompany('IOC', 'Energy', -18.06, 4),
-    _HeatCompany('OIL', 'Energy', 16.71, 3),
-    _HeatCompany('NTPC', 'Utilities', 12.00, 7),
-    _HeatCompany('POWERGRID', 'Utilities', -0.91, 6),
-    _HeatCompany('ADANIPOWER', 'Utilities', 10.74, 3),
-    _HeatCompany('TATAPOWER', 'Utilities', 10.31, 3),
-    _HeatCompany('BHARTIARTL', 'Telecommunication', 34.90, 13),
-    _HeatCompany('IDEA', 'Telecommunication', -43.81, 3),
-    _HeatCompany('ITC', 'Fast Moving Consumer Goods', -17.57, 8),
-    _HeatCompany('NESTLEIND', 'Fast Moving Consumer Goods', 48.45, 6),
-    _HeatCompany('HINDUNILVR', 'Fast Moving Consumer Goods', -3.18, 7),
-    _HeatCompany('MARICO', 'Fast Moving Consumer Goods', 27.10, 3),
-    _HeatCompany('ADANIPORTS', 'Services', 10.21, 6),
-    _HeatCompany('INDIGO', 'Services', -10.04, 5),
-    _HeatCompany('GMRAIRPORT', 'Services', 7.35, 3),
-  ];
+  late final List<_HeatCompany> _companies;
+  String _colorMetric = 'pg';
+  String _sizeMetric = 'mc';
+
+  @override
+  void initState() {
+    super.initState();
+    _companies = _buildCompanies();
+  }
+
+  List<_HeatCompany> _buildCompanies() {
+    final Map<String, List<Q1Company>> byIndustry = <String, List<Q1Company>>{};
+    for (final Q1Company company in widget.data.companies) {
+      byIndustry
+          .putIfAbsent(company.industry, () => <Q1Company>[])
+          .add(company);
+    }
+    for (final List<Q1Company> rows in byIndustry.values) {
+      rows.sort(
+          (Q1Company a, Q1Company b) => b.marketCap.compareTo(a.marketCap));
+    }
+
+    return widget.data.companies.map((Q1Company company) {
+      final List<Q1Company> peers =
+          byIndustry[company.industry] ?? <Q1Company>[];
+      final int industryRank =
+          peers.indexWhere((Q1Company c) => c.bseCode == company.bseCode) + 1;
+      return _HeatCompany(
+        company.symbol.isEmpty ? company.bseCode : company.symbol,
+        company.sector,
+        company.profitGrowth ?? 0,
+        company.marketCap <= 0 ? .01 : company.marketCap,
+        salesValue: company.salesFY27 <= 0 ? .01 : company.salesFY27,
+        name: company.name,
+        bseCode: company.bseCode,
+        industry: company.industry,
+        price: Q1Format.price(company.price),
+        marketCap: Q1Format.marketCap(company.marketCap),
+        allCapWeight: '${company.weight.toStringAsFixed(3)}%',
+        industryRank: industryRank > 0 ? '#$industryRank' : null,
+        industryCount: peers.length.toString(),
+        salesFY26: Q1Format.crore(company.salesFY26),
+        salesFY27: Q1Format.crore(company.salesFY27),
+        salesGrowth: company.salesGrowth,
+        netProfitFY26: Q1Format.crore(company.profitFY26),
+        netProfitFY27: Q1Format.crore(company.profitFY27),
+        marginFY26: Q1Format.plainPct(company.marginFY26),
+        marginFY27: Q1Format.plainPct(company.marginFY27),
+        marginDelta: company.marginChange,
+      );
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,24 +110,28 @@ class _Q1MarketHeatmapState extends State<Q1MarketHeatmap> {
                 fontSize: 8.5,
                 height: 1.4,
               ),
-              children: const <InlineSpan>[
-                TextSpan(text: 'Every company is sized by '),
+              children: <InlineSpan>[
+                const TextSpan(text: 'Every company is sized by '),
                 TextSpan(
-                  text: 'market cap',
-                  style: TextStyle(
+                  text: _sizeMetric == 'mc' ? 'market cap' : 'Q1 FY27 sales',
+                  style: const TextStyle(
                     color: _amber,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                TextSpan(text: ', grouped by sector and coloured by '),
+                const TextSpan(text: ', grouped by sector and coloured by '),
                 TextSpan(
-                  text: 'profit growth',
-                  style: TextStyle(
+                  text: _colorMetric == 'pg'
+                      ? 'profit growth'
+                      : _colorMetric == 'sg'
+                          ? 'sales growth'
+                          : 'margin change',
+                  style: const TextStyle(
                     color: _amber,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                TextSpan(text: '. Tap any tile for details.'),
+                const TextSpan(text: '. Tap any tile for details.'),
               ],
             ),
           ),
@@ -181,6 +151,8 @@ class _Q1MarketHeatmapState extends State<Q1MarketHeatmap> {
                 child: _SectorTreemap(
                   companies: _companies,
                   colorForValue: _colorForValue,
+                  colorValueForCompany: _colorValueForCompany,
+                  sizeForCompany: _sizeValueForCompany,
                   onCompanyTap: (_HeatCompany company) =>
                       _showCompany(context, company),
                 ),
@@ -189,8 +161,7 @@ class _Q1MarketHeatmapState extends State<Q1MarketHeatmap> {
           ),
           const SizedBox(height: 9),
           Text(
-            'Profit Growth and Market-Cap sizing are active in this design-reference version. '
-            'Sales Growth, Margin Δ and Sales sizing will activate when the Q1 FY27 API is connected.',
+            'Real Q1 FY27 API data • ${_companies.length} companies • colour and size controls are live.',
             style: TextStyle(
               color: Colors.white.withValues(alpha: .48),
               fontSize: 7,
@@ -210,16 +181,21 @@ class _Q1MarketHeatmapState extends State<Q1MarketHeatmap> {
         _controlGroup(
           label: 'COLOUR BY',
           children: <Widget>[
-            _choice(context, 'Profit Gr.', true),
-            _choice(context, 'Sales Gr.', false),
-            _choice(context, 'Margin Δ', false),
+            _choice('Profit Gr.', _colorMetric == 'pg',
+                () => setState(() => _colorMetric = 'pg')),
+            _choice('Sales Gr.', _colorMetric == 'sg',
+                () => setState(() => _colorMetric = 'sg')),
+            _choice('Margin Δ', _colorMetric == 'mcg',
+                () => setState(() => _colorMetric = 'mcg')),
           ],
         ),
         _controlGroup(
           label: 'SIZE BY',
           children: <Widget>[
-            _choice(context, 'M-Cap', true),
-            _choice(context, 'Sales', false),
+            _choice('M-Cap', _sizeMetric == 'mc',
+                () => setState(() => _sizeMetric = 'mc')),
+            _choice('Sales', _sizeMetric == 'sales',
+                () => setState(() => _sizeMetric = 'sales')),
           ],
         ),
       ],
@@ -247,52 +223,26 @@ class _Q1MarketHeatmapState extends State<Q1MarketHeatmap> {
     );
   }
 
-  Widget _choice(BuildContext context, String label, bool enabled) {
+  Widget _choice(String label, bool selected, VoidCallback onTap) {
     return GestureDetector(
-      onTap: enabled
-          ? null
-          : () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'This heatmap metric will activate when the Q1 FY27 API is connected.',
-                  ),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-      child: Opacity(
-        opacity: enabled ? 1 : .55,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-          decoration: BoxDecoration(
-            color: enabled ? Colors.white : Colors.white.withValues(alpha: .06),
-            borderRadius: BorderRadius.circular(7),
-            border: Border.all(
-              color:
-                  enabled ? Colors.white : Colors.white.withValues(alpha: .15),
-            ),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.white.withValues(alpha: .06),
+          borderRadius: BorderRadius.circular(7),
+          border: Border.all(
+            color:
+                selected ? Colors.white : Colors.white.withValues(alpha: .15),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                label,
-                style: TextStyle(
-                  color: enabled ? _navy : Colors.white70,
-                  fontSize: 7.5,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              if (!enabled) ...<Widget>[
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.lock_outline_rounded,
-                  size: 9,
-                  color: Colors.white54,
-                ),
-              ],
-            ],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? _navy : Colors.white70,
+            fontSize: 7.5,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),
@@ -300,12 +250,12 @@ class _Q1MarketHeatmapState extends State<Q1MarketHeatmap> {
   }
 
   Widget _scale() {
+    final double limit = _colorLimit;
+    final String suffix = _colorMetric == 'mcg' ? ' pp' : '%';
     return Row(
       children: <Widget>[
-        const Text(
-          '-50%',
-          style: TextStyle(color: Colors.white54, fontSize: 7),
-        ),
+        Text('-${limit.toStringAsFixed(limit < 10 ? 0 : 0)}$suffix',
+            style: const TextStyle(color: Colors.white54, fontSize: 7)),
         const SizedBox(width: 7),
         Expanded(
           child: Container(
@@ -318,42 +268,54 @@ class _Q1MarketHeatmapState extends State<Q1MarketHeatmap> {
                   Color(0xFFD92D20),
                   Color(0xFF475467),
                   Color(0xFF079455),
-                  Color(0xFF067647),
+                  Color(0xFF067647)
                 ],
               ),
             ),
           ),
         ),
         const SizedBox(width: 7),
-        const Text(
-          '+50%',
-          style: TextStyle(color: Colors.white54, fontSize: 7),
-        ),
+        Text('+${limit.toStringAsFixed(0)}$suffix',
+            style: const TextStyle(color: Colors.white54, fontSize: 7)),
       ],
     );
   }
 
-  Color _colorForValue(double value) {
-    final double clamped = value.clamp(-50.0, 50.0).toDouble();
-
-    if (clamped.abs() < 1) {
-      return _neutral;
+  double get _colorLimit {
+    switch (_colorMetric) {
+      case 'sg':
+        return 30;
+      case 'mcg':
+        return 5;
+      default:
+        return 50;
     }
+  }
 
+  double _colorValueForCompany(_HeatCompany company) {
+    switch (_colorMetric) {
+      case 'sg':
+        return company.salesGrowth ?? 0;
+      case 'mcg':
+        return company.marginDelta ?? 0;
+      default:
+        return company.profitGrowth;
+    }
+  }
+
+  double _sizeValueForCompany(_HeatCompany company) {
+    return _sizeMetric == 'sales' ? company.salesValue : company.weight;
+  }
+
+  Color _colorForValue(double value) {
+    final double limit = _colorLimit;
+    final double clamped = value.clamp(-limit, limit).toDouble();
+    if (clamped.abs() < (limit * .02)) return _neutral;
     if (clamped > 0) {
-      return Color.lerp(
-            const Color(0xFF356B56),
-            _green,
-            clamped / 50,
-          ) ??
+      return Color.lerp(const Color(0xFF356B56), _green, clamped / limit) ??
           _green;
     }
-
-    return Color.lerp(
-          const Color(0xFF76505A),
-          _red,
-          clamped.abs() / 50,
-        ) ??
+    return Color.lerp(const Color(0xFF76505A), _red, clamped.abs() / limit) ??
         _red;
   }
 
@@ -368,7 +330,7 @@ class _Q1MarketHeatmapState extends State<Q1MarketHeatmap> {
         (_HeatCompany a, _HeatCompany b) => b.weight.compareTo(a.weight),
       );
 
-    final Color metricColor = _colorForValue(company.profitGrowth);
+    final Color metricColor = _colorForValue(_colorValueForCompany(company));
 
     showDialog<void>(
       context: context,
@@ -953,11 +915,15 @@ class _SectorTreemap extends StatelessWidget {
   const _SectorTreemap({
     required this.companies,
     required this.colorForValue,
+    required this.colorValueForCompany,
+    required this.sizeForCompany,
     required this.onCompanyTap,
   });
 
   final List<_HeatCompany> companies;
   final Color Function(double) colorForValue;
+  final double Function(_HeatCompany) colorValueForCompany;
+  final double Function(_HeatCompany) sizeForCompany;
   final ValueChanged<_HeatCompany> onCompanyTap;
 
   @override
@@ -983,7 +949,7 @@ class _SectorTreemap extends StatelessWidget {
             grouped.entries.map((entry) {
           final double weight = entry.value.fold<double>(
             0,
-            (double sum, _HeatCompany company) => sum + company.weight,
+            (double sum, _HeatCompany company) => sum + sizeForCompany(company),
           );
           return _Weighted<_SectorGroup>(
             _SectorGroup(entry.key, entry.value),
@@ -1005,6 +971,8 @@ class _SectorTreemap extends StatelessWidget {
                   child: _SectorTile(
                     group: tile.item,
                     colorForValue: colorForValue,
+                    colorValueForCompany: colorValueForCompany,
+                    sizeForCompany: sizeForCompany,
                     onCompanyTap: onCompanyTap,
                   ),
                 ),
@@ -1021,11 +989,15 @@ class _SectorTile extends StatelessWidget {
   const _SectorTile({
     required this.group,
     required this.colorForValue,
+    required this.colorValueForCompany,
+    required this.sizeForCompany,
     required this.onCompanyTap,
   });
 
   final _SectorGroup group;
   final Color Function(double) colorForValue;
+  final double Function(_HeatCompany) colorValueForCompany;
+  final double Function(_HeatCompany) sizeForCompany;
   final ValueChanged<_HeatCompany> onCompanyTap;
 
   @override
@@ -1049,7 +1021,7 @@ class _SectorTile extends StatelessWidget {
             .map(
               (_HeatCompany company) => _Weighted<_HeatCompany>(
                 company,
-                company.weight,
+                sizeForCompany(company),
               ),
             )
             .toList();
@@ -1099,7 +1071,7 @@ class _SectorTile extends StatelessWidget {
                         padding: const EdgeInsets.all(.7),
                         child: _CompanyTile(
                           company: tile.item,
-                          color: colorForValue(tile.item.profitGrowth),
+                          color: colorForValue(colorValueForCompany(tile.item)),
                           onTap: () => onCompanyTap(tile.item),
                         ),
                       ),
@@ -1615,12 +1587,14 @@ class _HeatCompany {
     this.marginFY26,
     this.marginFY27,
     this.marginDelta,
+    required this.salesValue,
   });
 
   final String symbol;
   final String sector;
   final double profitGrowth;
   final double weight;
+  final double salesValue;
 
   final String? name;
   final String? bseCode;

@@ -14,7 +14,11 @@ import '../../locator.dart';
 import '../common.dart';
 import '../data/app_data.dart';
 
-Future<Response> httpGet(String url, {Map<String, String> headers = const {}, bool isRedirectingStatusCode = true, bool isMaintenance = false, bool isSendToken = false}) async {
+Future<Response> httpGet(String url,
+    {Map<String, String> headers = const {},
+    bool isRedirectingStatusCode = true,
+    bool isMaintenance = false,
+    bool isSendToken = false}) async {
   debugPrint("http get request url ===================> $url");
   if (headers.isEmpty) {
     String token = await AppData.getAccessToken();
@@ -37,7 +41,18 @@ Future<Response> httpGet(String url, {Map<String, String> headers = const {}, bo
   request.headers.addAll(headers);
   http.StreamedResponse response = await request.send();
 
-  http.Response res = http.Response(await response.stream.bytesToString(), response.statusCode);
+  // Preserve the original response bytes and headers.
+  // Rebuilding Response from a String without the original headers can make
+  // the http package fall back to Latin-1 and throw:
+  // "Invalid argument (string): Contains invalid characters"
+  // when an HTML/UTF-8 response contains characters such as ₹ or smart quotes.
+  final responseBytes = await response.stream.toBytes();
+  http.Response res = http.Response.bytes(
+    responseBytes,
+    response.statusCode,
+    headers: response.headers,
+    request: request,
+  );
 
   //debugPrint("http get response $url ===================> ${res.body}");
 
@@ -47,7 +62,8 @@ Future<Response> httpGet(String url, {Map<String, String> headers = const {}, bo
     if (data['status'] == 'restriction') {
       print(isNavigatedIpPage);
       if (!isNavigatedIpPage) {
-        nextRoute(IpEmptyStatePage.pageName, arguments: data['data'], isClearBackRoutes: true);
+        nextRoute(IpEmptyStatePage.pageName,
+            arguments: data['data'], isClearBackRoutes: true);
       }
       return res;
     }
@@ -61,7 +77,8 @@ Future<Response> httpGet(String url, {Map<String, String> headers = const {}, bo
       // Maintenance
       try {
         if (jsonDecode(res.body)['status'] == 'maintenance') {
-          nextRoute(MaintenancePage.pageName, isClearBackRoutes: true, arguments: jsonDecode(res.body)['data']);
+          nextRoute(MaintenancePage.pageName,
+              isClearBackRoutes: true, arguments: jsonDecode(res.body)['data']);
         }
       } catch (_) {}
     }
@@ -70,7 +87,9 @@ Future<Response> httpGet(String url, {Map<String, String> headers = const {}, bo
   }
 }
 
-Future<Response> httpPost(String url, dynamic body, {Map<String, String> headers = const {}, bool isRedirectingStatusCode = true}) async {
+Future<Response> httpPost(String url, dynamic body,
+    {Map<String, String> headers = const {},
+    bool isRedirectingStatusCode = true}) async {
   debugPrint("http post request url ===================> $url");
   debugPrint("http post request body ===================> $body");
   var myBody = json.encode(body);
@@ -93,7 +112,8 @@ Future<Response> httpPost(String url, dynamic body, {Map<String, String> headers
   request.headers.addAll(headers);
   http.StreamedResponse response = await request.send();
 
-  http.Response res = http.Response(await response.stream.bytesToString(), response.statusCode);
+  http.Response res =
+      http.Response(await response.stream.bytesToString(), response.statusCode);
 
   //debugPrint("http post response ===================> ${res.body}");
 
@@ -107,7 +127,9 @@ Future<Response> httpPost(String url, dynamic body, {Map<String, String> headers
   }
 }
 
-Future<Response> httpDelete(String url, dynamic body, {Map<String, String> headers = const {}, bool isRedirectingStatusCode = true}) async {
+Future<Response> httpDelete(String url, dynamic body,
+    {Map<String, String> headers = const {},
+    bool isRedirectingStatusCode = true}) async {
   var myBody = json.encode(body);
 
   if (headers.isEmpty) {
@@ -128,7 +150,8 @@ Future<Response> httpDelete(String url, dynamic body, {Map<String, String> heade
   request.headers.addAll(headers);
   http.StreamedResponse response = await request.send();
 
-  http.Response res = http.Response(await response.stream.bytesToString(), response.statusCode);
+  http.Response res =
+      http.Response(await response.stream.bytesToString(), response.statusCode);
 
   if (res.statusCode == 401) {
     if (isRedirectingStatusCode) {
@@ -140,7 +163,9 @@ Future<Response> httpDelete(String url, dynamic body, {Map<String, String> heade
   }
 }
 
-Future<Response> httpPut(String url, dynamic body, {Map<String, String> headers = const {}, bool isRedirectingStatusCode = true}) async {
+Future<Response> httpPut(String url, dynamic body,
+    {Map<String, String> headers = const {},
+    bool isRedirectingStatusCode = true}) async {
   var myBody;
   if (body.runtimeType != String) {
     myBody = json.encode(body);
@@ -166,7 +191,8 @@ Future<Response> httpPut(String url, dynamic body, {Map<String, String> headers 
   request.headers.addAll(headers);
   http.StreamedResponse response = await request.send();
 
-  http.Response res = http.Response(await response.stream.bytesToString(), response.statusCode);
+  http.Response res =
+      http.Response(await response.stream.bytesToString(), response.statusCode);
 
   if (res.statusCode == 401) {
     if (isRedirectingStatusCode) {
@@ -178,7 +204,8 @@ Future<Response> httpPut(String url, dynamic body, {Map<String, String> headers 
   }
 }
 
-Future<Response> httpPostWithToken(dynamic url, dynamic body, {bool isRedirectingStatusCode = true}) async {
+Future<Response> httpPostWithToken(dynamic url, dynamic body,
+    {bool isRedirectingStatusCode = true}) async {
   String token = await AppData.getAccessToken();
 
   Map<String, String> headers = {
@@ -189,10 +216,12 @@ Future<Response> httpPostWithToken(dynamic url, dynamic body, {bool isRedirectin
     'x-locale': locator<AppLanguage>().currentLanguage.toLowerCase(),
   };
 
-  return httpPost(url, body, headers: headers, isRedirectingStatusCode: isRedirectingStatusCode);
+  return httpPost(url, body,
+      headers: headers, isRedirectingStatusCode: isRedirectingStatusCode);
 }
 
-Future<Response> httpDeleteWithToken(dynamic url, dynamic body, {bool isRedirectingStatusCode = true}) async {
+Future<Response> httpDeleteWithToken(dynamic url, dynamic body,
+    {bool isRedirectingStatusCode = true}) async {
   String token = await AppData.getAccessToken();
 
   Map<String, String> headers = {
@@ -203,10 +232,12 @@ Future<Response> httpDeleteWithToken(dynamic url, dynamic body, {bool isRedirect
     'x-locale': locator<AppLanguage>().currentLanguage.toLowerCase(),
   };
 
-  return httpDelete(url, body, headers: headers, isRedirectingStatusCode: isRedirectingStatusCode);
+  return httpDelete(url, body,
+      headers: headers, isRedirectingStatusCode: isRedirectingStatusCode);
 }
 
-Future<Response> httpPutWithToken(dynamic url, dynamic body, {bool isRedirectingStatusCode = true}) async {
+Future<Response> httpPutWithToken(dynamic url, dynamic body,
+    {bool isRedirectingStatusCode = true}) async {
   String token = await AppData.getAccessToken();
 
   Map<String, String> headers = {
@@ -217,10 +248,12 @@ Future<Response> httpPutWithToken(dynamic url, dynamic body, {bool isRedirecting
     'x-locale': locator<AppLanguage>().currentLanguage.toLowerCase(),
   };
 
-  return httpPut(url, body, headers: headers, isRedirectingStatusCode: isRedirectingStatusCode);
+  return httpPut(url, body,
+      headers: headers, isRedirectingStatusCode: isRedirectingStatusCode);
 }
 
-Future<Response> httpGetWithToken(dynamic url, {bool isRedirectingStatusCode = true}) async {
+Future<Response> httpGetWithToken(dynamic url,
+    {bool isRedirectingStatusCode = true}) async {
   String token = await AppData.getAccessToken();
   // print(token);
   Map<String, String> headers = {
@@ -231,10 +264,13 @@ Future<Response> httpGetWithToken(dynamic url, {bool isRedirectingStatusCode = t
   };
   //debugPrint("httpGetWithToken headers ==========> $headers");
 
-  return httpGet(url, headers: headers, isRedirectingStatusCode: isRedirectingStatusCode);
+  return httpGet(url,
+      headers: headers, isRedirectingStatusCode: isRedirectingStatusCode);
 }
 
-Future<dio.Response> dioPost(String url, dynamic body, {Map<String, String> headers = const {}, bool isRedirectingStatusCode = true}) async {
+Future<dio.Response> dioPost(String url, dynamic body,
+    {Map<String, String> headers = const {},
+    bool isRedirectingStatusCode = true}) async {
   // var myBody = body;
   // if(body.runtimeType is! dio.FormData){
   //   // try{
@@ -251,7 +287,9 @@ Future<dio.Response> dioPost(String url, dynamic body, {Map<String, String> head
     };
   }
 
-  var res = await locator<dio.Dio>().post(url, data: body, options: dio.Options(headers: headers)).timeout(const Duration(seconds: 30));
+  var res = await locator<dio.Dio>()
+      .post(url, data: body, options: dio.Options(headers: headers))
+      .timeout(const Duration(seconds: 30));
 
   // print(res.data.toString());
   // log(utf8.decode(res.bodyBytes));
@@ -266,7 +304,8 @@ Future<dio.Response> dioPost(String url, dynamic body, {Map<String, String> head
   }
 }
 
-Future<dio.Response> dioPostWithToken(dynamic url, dynamic body, {bool isRedirectingStatusCode = true}) async {
+Future<dio.Response> dioPostWithToken(dynamic url, dynamic body,
+    {bool isRedirectingStatusCode = true}) async {
   String token = await AppData.getAccessToken();
 
   Map<String, String> headers = {
@@ -277,5 +316,6 @@ Future<dio.Response> dioPostWithToken(dynamic url, dynamic body, {bool isRedirec
     'x-locale': locator<AppLanguage>().currentLanguage.toLowerCase(),
   };
 
-  return dioPost(url, body, headers: headers, isRedirectingStatusCode: isRedirectingStatusCode);
+  return dioPost(url, body,
+      headers: headers, isRedirectingStatusCode: isRedirectingStatusCode);
 }

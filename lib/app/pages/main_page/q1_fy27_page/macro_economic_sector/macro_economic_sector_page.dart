@@ -1,14 +1,15 @@
-// ignore_for_file: unused_field, unused_element
-
 import 'package:flutter/material.dart';
+import 'package:webinar/app/models/q1_fy27_dashboard_model.dart';
 
 class MacroEconomicSectorPage extends StatelessWidget {
   const MacroEconomicSectorPage({
     super.key,
+    required this.data,
     required this.onNavigateToAllCompanies,
   });
 
-  final VoidCallback onNavigateToAllCompanies;
+  final Q1FY27DashboardData data;
+  final ValueChanged<String> onNavigateToAllCompanies;
 
   static const Color _navy = Color(0xFF0B1F4D);
   static const Color _blue = Color(0xFF0D3CCF);
@@ -83,140 +84,20 @@ class MacroEconomicSectorPage extends StatelessWidget {
     ),
   ];
 
-  static const List<_MacroSectorData> _macroSectors = <_MacroSectorData>[
-    _MacroSectorData(
-      sector: 'Financial Services',
-      companies: 151,
-      marketCap: '₹94.89 L Cr',
-      sales: '₹15,34,241 Cr',
-      profit: '₹2,03,636 Cr',
-      salesGrowth: 9.32,
-      profitGrowth: 21.77,
-      margin: 13.27,
-      marginDelta: 1.36,
-    ),
-    _MacroSectorData(
-      sector: 'Consumer Discretionary',
-      companies: 272,
-      marketCap: '₹73.45 L Cr',
-      sales: '₹7,38,259 Cr',
-      profit: '₹47,495 Cr',
-      salesGrowth: 22.16,
-      profitGrowth: 14.13,
-      margin: 6.43,
-      marginDelta: -0.45,
-    ),
-    _MacroSectorData(
-      sector: 'Industrials',
-      companies: 233,
-      marketCap: '₹51.84 L Cr',
-      sales: '₹3,85,599 Cr',
-      profit: '₹36,111 Cr',
-      salesGrowth: 16.58,
-      profitGrowth: 31.20,
-      margin: 9.36,
-      marginDelta: 1.04,
-    ),
-    _MacroSectorData(
-      sector: 'Commodities',
-      companies: 123,
-      marketCap: '₹41.42 L Cr',
-      sales: '₹6,02,329 Cr',
-      profit: '₹57,534 Cr',
-      salesGrowth: 21.76,
-      profitGrowth: 49.56,
-      margin: 9.55,
-      marginDelta: 1.78,
-    ),
-    _MacroSectorData(
-      sector: 'Healthcare',
-      companies: 102,
-      marketCap: '₹32.67 L Cr',
-      sales: '₹1,51,837 Cr',
-      profit: '₹19,167 Cr',
-      salesGrowth: 17.02,
-      profitGrowth: 9.06,
-      margin: 12.62,
-      marginDelta: -0.92,
-    ),
-    _MacroSectorData(
-      sector: 'Energy',
-      companies: 28,
-      marketCap: '₹30.23 L Cr',
-      sales: '₹13,14,844 Cr',
-      profit: '₹41,769 Cr',
-      salesGrowth: 25.49,
-      profitGrowth: -45.34,
-      margin: 3.18,
-      marginDelta: -4.12,
-    ),
-    _MacroSectorData(
-      sector: 'Information Technology',
-      companies: 50,
-      marketCap: '₹25.47 L Cr',
-      sales: '₹2,66,490 Cr',
-      profit: '₹38,592 Cr',
-      salesGrowth: 17.02,
-      profitGrowth: 11.92,
-      margin: 14.48,
-      marginDelta: -0.66,
-    ),
-    _MacroSectorData(
-      sector: 'Fast Moving Consumer Goods',
-      companies: 71,
-      marketCap: '₹21.62 L Cr',
-      sales: '₹2,10,248 Cr',
-      profit: '₹18,564 Cr',
-      salesGrowth: 17.43,
-      profitGrowth: 2.63,
-      margin: 8.83,
-      marginDelta: -1.27,
-    ),
-    _MacroSectorData(
-      sector: 'Utilities',
-      companies: 28,
-      marketCap: '₹16.09 L Cr',
-      sales: '₹1,61,879 Cr',
-      profit: '₹24,444 Cr',
-      salesGrowth: 13.62,
-      profitGrowth: 13.64,
-      margin: 15.10,
-      marginDelta: 0.00,
-    ),
-    _MacroSectorData(
-      sector: 'Telecommunication',
-      companies: 14,
-      marketCap: '₹15.52 L Cr',
-      sales: '₹96,423 Cr',
-      profit: '₹7,869 Cr',
-      salesGrowth: 16.45,
-      profitGrowth: 543.94,
-      margin: 8.16,
-      marginDelta: 6.69,
-    ),
-    _MacroSectorData(
-      sector: 'Services',
-      companies: 41,
-      marketCap: '₹10.68 L Cr',
-      sales: '₹1,31,537 Cr',
-      profit: '₹16,995 Cr',
-      salesGrowth: 21.21,
-      profitGrowth: 7.84,
-      margin: 12.92,
-      marginDelta: -1.60,
-    ),
-    _MacroSectorData(
-      sector: 'Diversified',
-      companies: 4,
-      marketCap: '₹89,116 Cr',
-      sales: '₹11,405 Cr',
-      profit: '₹1,519 Cr',
-      salesGrowth: 16.47,
-      profitGrowth: 40.13,
-      margin: 13.32,
-      marginDelta: 2.25,
-    ),
-  ];
+  List<_MacroSectorData> get _macroSectors =>
+      data.sectorSummaries.map((Q1SectorSummary item) {
+        return _MacroSectorData(
+          sector: item.sector,
+          companies: item.companies,
+          marketCap: Q1Format.marketCap(item.marketCap),
+          sales: Q1Format.crore(item.salesFY27),
+          profit: Q1Format.crore(item.profitFY27),
+          salesGrowth: item.salesGrowth ?? 0,
+          profitGrowth: item.profitGrowth ?? 0,
+          margin: item.marginFY27 ?? 0,
+          marginDelta: item.marginChange ?? 0,
+        );
+      }).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -640,7 +521,7 @@ class MacroEconomicSectorPage extends StatelessWidget {
               ],
               rows: _macroSectors.map((_MacroSectorData item) {
                 return DataRow(
-                  onSelectChanged: (_) => onNavigateToAllCompanies(),
+                  onSelectChanged: (_) => onNavigateToAllCompanies(item.sector),
                   cells: <DataCell>[
                     DataCell(
                       SizedBox(
@@ -1061,7 +942,7 @@ class MacroEconomicSectorPage extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            'NIFTY ALLCAP Q1 FY27 workbook',
+            data.meta.source,
             style: TextStyle(
               color: Colors.white.withValues(alpha: .65),
               fontSize: 8,
@@ -1078,7 +959,7 @@ class MacroEconomicSectorPage extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            '1,117 companies • 12 sectors • 159 industries',
+            '${data.companies.length} companies • ${data.sectors.length} sectors • ${data.industries.length} industries',
             style: TextStyle(
               color: Colors.white.withValues(alpha: .65),
               fontSize: 8,
