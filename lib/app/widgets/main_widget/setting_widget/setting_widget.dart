@@ -3,20 +3,127 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:webinar/app/models/login_history_model.dart';
-import 'package:webinar/common/common.dart';
 import 'package:webinar/common/components.dart';
 import 'package:webinar/common/utils/app_text.dart';
 import 'package:webinar/config/assets.dart';
 
 import '../../../../common/data/app_language.dart';
 import '../../../../config/colors.dart';
-import '../../../../config/styles.dart';
 import '../../../../locator.dart';
 import '../../../models/location_model.dart';
 import '../../../services/guest_service/location_service.dart';
 import '../main_widget.dart';
 
+/// Settings sections share one card system so future sections can be added
+/// without duplicating decoration, spacing, or typography.
 class SettingWidget {
+  static const Color _blue = Color(0xFF0D3CCF);
+  static const Color _ink = Color(0xFF17233F);
+  static const Color _muted = Color(0xFF75839B);
+  static const Color _line = Color(0xFFE8EDF5);
+  static const Color _red = Color(0xFFDC3545);
+
+  static Widget _content(List<Widget> sections) {
+    return ListView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 17, 16, 26),
+      children: sections,
+    );
+  }
+
+  static Widget _card({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required List<Widget> children,
+    Color accent = _blue,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(17, 17, 17, 19),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A1B3F82),
+            blurRadius: 18,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: .09),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(icon, color: accent, size: 21),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: _ink,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(fontSize: 11.5, color: _muted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 17),
+          const Divider(color: _line, height: 1),
+          const SizedBox(height: 17),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  static Widget _note(String message,
+      {IconData icon = Icons.info_outline_rounded}) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5FF),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: _blue, size: 17),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(fontSize: 12, height: 1.5, color: _muted),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   static Widget generalPage({
     required TextEditingController emailController,
     required FocusNode emailNode,
@@ -34,115 +141,207 @@ class SettingWidget {
     required void Function() onDeleteClick,
     required bool isDeleteLoading,
   }) {
-    languageController.text = locator<AppLanguage>().appLanguagesData[locator<AppLanguage>().appLanguagesData.indexWhere((element) => element.code!.toLowerCase() == locator<AppLanguage>().currentLanguage.toLowerCase())].name ?? '';
+    final languages = locator<AppLanguage>().appLanguagesData;
+    final currentLanguage =
+        locator<AppLanguage>().currentLanguage.toLowerCase();
+    final idx = languages.indexWhere(
+      (language) => language.code?.toLowerCase() == currentLanguage,
+    );
+    languageController.text = idx >= 0 ? (languages[idx].name ?? '') : '';
 
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: padding(),
-      child: Column(
+    return _content([
+      _card(
+        icon: Icons.person_outline_rounded,
+        title: 'Personal information',
+        subtitle: 'Keep your profile details up to date',
         children: [
-          space(12),
-
-          input(emailController, emailNode, appText.email, isBorder: true, title: appText.email),
-
-          space(14),
-
-          input(nameController, nameNode, appText.name, isBorder: true, title: appText.name),
-
-          space(14),
-
-          input(phoneController, phoneNode, appText.phone, isBorder: true, title: appText.phone),
-
-          space(14),
-
-          input(languageController, languageNode, appText.language, isBorder: true, title: appText.language, isReadOnly: true, rightIconPath: AppAssets.arrowDownSvg, rightIconSize: 16, onTap: () async {
-            await MainWidget.showLanguageDialog();
-
-            onTapChangeState();
-          }),
-
-          space(14),
-
-          switchButton(appText.joinNewsletter, newsletter, (value) {
-            onTapChangeNewsletter(value);
-          }),
-
-          space(24),
-          space(24),
-
-          button(
-              onTap: onDeleteClick,
-              width: getSize().width,
-              height: 51,
-              text: appText.deleteAccount,
-              bgColor: red49,
-              textColor: Colors.white,
-              isLoading: isDeleteLoading),
-
-          space(150),
+          input(nameController, nameNode, appText.name,
+              isBorder: true, title: appText.name, radius: 14),
+          const SizedBox(height: 16),
+          input(emailController, emailNode, appText.email,
+              isBorder: true, title: appText.email, radius: 14),
+          const SizedBox(height: 16),
+          input(phoneController, phoneNode, appText.phone,
+              isBorder: true, title: appText.phone, radius: 14),
         ],
       ),
-    );
-  }
-
-  static Widget securityPage(TextEditingController currentPasswordController, FocusNode currentPasswordNode, TextEditingController newPasswordController, FocusNode newPasswordNode, TextEditingController retypePasswordController, FocusNode retypePasswordNode, List<LoginHistoryModel> loginHistory) {
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      child: Column(
+      const SizedBox(height: 15),
+      _card(
+        icon: Icons.tune_rounded,
+        title: 'Preferences',
+        subtitle: 'Choose how you use the app',
         children: [
-          Padding(
-            padding: padding(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          input(
+            languageController,
+            languageNode,
+            appText.language,
+            isBorder: true,
+            title: appText.language,
+            radius: 14,
+            isReadOnly: true,
+            rightIconPath: AppAssets.arrowDownSvg,
+            rightIconSize: 16,
+            onTap: () async {
+              await MainWidget.showLanguageDialog();
+              onTapChangeState();
+            },
+          ),
+          const SizedBox(height: 17),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7F9FD),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
               children: [
-                space(12),
-                input(currentPasswordController, currentPasswordNode, '', isBorder: true, title: appText.currentPassword),
-                space(14),
-                input(newPasswordController, newPasswordNode, '', isBorder: true, title: appText.newPassword),
-                space(14),
-                input(retypePasswordController, retypePasswordNode, '', isBorder: true, title: appText.retypePassword),
-                space(18),
-                Text(
-                  appText.loginHistory,
-                  style: style14Bold(),
+                const Icon(Icons.mark_email_unread_outlined,
+                    color: _blue, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    appText.joinNewsletter,
+                    style: const TextStyle(
+                      color: _ink,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-                space(4),
-                Text(
-                  appText.loginHistoryDesc,
-                  style: style12Regular().copyWith(color: greyB2),
+                Switch.adaptive(
+                  value: newsletter,
+                  activeColor: _blue,
+                  onChanged: onTapChangeNewsletter,
                 ),
-                space(12),
               ],
             ),
           ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              headingRowColor: WidgetStateProperty.all(greyE7.withValues(alpha: .2)),
-              border: const TableBorder(
-                horizontalInside: BorderSide(color: Colors.white, width: 2),
-              ),
-              decoration: const BoxDecoration(),
-              columns: [
-                DataColumn(label: Text(appText.os, style: style14Bold().copyWith(color: Colors.black))),
-                DataColumn(label: Text(appText.browser, style: style14Bold().copyWith(color: Colors.black))),
-                DataColumn(label: Text(appText.device, style: style14Bold().copyWith(color: Colors.black))),
-                DataColumn(label: Text(appText.ip, style: style14Bold().copyWith(color: Colors.black))),
-              ],
-              rows: List.generate(loginHistory.length, (index) {
-                return DataRow(selected: false, color: WidgetStateProperty.all((index % 2 == 1) ? greyE7.withValues(alpha: .2) : Colors.white), cells: [
-                  DataCell(Text(loginHistory[index].os ?? '', style: style12Regular().copyWith(color: greyA5))),
-                  DataCell(Text(loginHistory[index].browser ?? '', style: style12Regular().copyWith(color: greyA5))),
-                  DataCell(Text(loginHistory[index].device ?? '', style: style12Regular().copyWith(color: greyA5))),
-                  DataCell(Text(loginHistory[index].ip ?? '', style: style12Regular().copyWith(color: greyA5))),
-                ]);
-              }),
-            ),
-          )
         ],
       ),
-    );
+      const SizedBox(height: 15),
+      _card(
+        icon: Icons.warning_amber_rounded,
+        title: 'Account management',
+        subtitle: 'Sensitive account actions',
+        accent: _red,
+        children: [
+          Text(
+            'Deleting your account is permanent. Please review this action carefully.',
+            style: const TextStyle(fontSize: 12, height: 1.5, color: _muted),
+          ),
+          const SizedBox(height: 14),
+          OutlinedButton.icon(
+            onPressed: isDeleteLoading ? null : onDeleteClick,
+            icon: isDeleteLoading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.delete_outline_rounded, size: 18),
+            label: Text(appText.deleteAccount),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: _red,
+              side: const BorderSide(color: Color(0xFFF3B9BF)),
+              minimumSize: const Size(double.infinity, 46),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13)),
+            ),
+          ),
+        ],
+      ),
+    ]);
   }
+
+  static Widget securityPage(
+    TextEditingController currentPasswordController,
+    FocusNode currentPasswordNode,
+    TextEditingController newPasswordController,
+    FocusNode newPasswordNode,
+    TextEditingController retypePasswordController,
+    FocusNode retypePasswordNode,
+    List<LoginHistoryModel> loginHistory,
+  ) {
+    return _content([
+      _card(
+        icon: Icons.lock_outline_rounded,
+        title: 'Password & security',
+        subtitle: 'Protect your account with a strong password',
+        children: [
+          input(currentPasswordController, currentPasswordNode, '',
+              isBorder: true,
+              title: appText.currentPassword,
+              isPassword: true,
+              radius: 14),
+          const SizedBox(height: 16),
+          input(newPasswordController, newPasswordNode, '',
+              isBorder: true,
+              title: appText.newPassword,
+              isPassword: true,
+              radius: 14),
+          const SizedBox(height: 16),
+          input(retypePasswordController, retypePasswordNode, '',
+              isBorder: true,
+              title: appText.retypePassword,
+              isPassword: true,
+              radius: 14),
+          const SizedBox(height: 16),
+          _note('Changes will be applied when you tap Save Changes below.',
+              icon: Icons.verified_user_outlined),
+        ],
+      ),
+      const SizedBox(height: 15),
+      _card(
+        icon: Icons.history_rounded,
+        title: appText.loginHistory,
+        subtitle: appText.loginHistoryDesc,
+        children: [
+          if (loginHistory.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 18),
+              child: Center(
+                child: Text('No login history available',
+                    style: TextStyle(color: _muted, fontSize: 12)),
+              ),
+            )
+          else
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columnSpacing: 22,
+                horizontalMargin: 8,
+                headingRowHeight: 42,
+                dataRowMinHeight: 46,
+                dataRowMaxHeight: 56,
+                headingRowColor:
+                    WidgetStateProperty.all(const Color(0xFFF1F5FF)),
+                columns: [
+                  DataColumn(label: _tableHeading(appText.os)),
+                  DataColumn(label: _tableHeading(appText.browser)),
+                  DataColumn(label: _tableHeading(appText.device)),
+                  DataColumn(label: _tableHeading(appText.ip)),
+                ],
+                rows: loginHistory.map((login) {
+                  return DataRow(cells: [
+                    DataCell(_tableValue(login.os ?? '')),
+                    DataCell(_tableValue(login.browser ?? '')),
+                    DataCell(_tableValue(login.device ?? '')),
+                    DataCell(_tableValue(login.ip ?? '')),
+                  ]);
+                }).toList(),
+              ),
+            ),
+        ],
+      ),
+    ]);
+  }
+
+  static Widget _tableHeading(String label) => Text(label,
+      style: const TextStyle(
+          fontSize: 12, fontWeight: FontWeight.w700, color: _ink));
+
+  static Widget _tableValue(String value) =>
+      Text(value, style: const TextStyle(fontSize: 12, color: _muted));
 
   static Widget financialPage(
     TextEditingController accountTypeController,
@@ -161,195 +360,37 @@ class SettingWidget {
     Function(ImageSource source) selectIndentityImage,
     Function() selectCertificateImage,
   ) {
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: padding(),
-      child: Column(
+    return _content([
+      _card(
+        icon: Icons.account_balance_outlined,
+        title: 'Financial information',
+        subtitle: 'Your saved account and address details',
         children: [
-          // space(12),
-
-          // // important
-          // Container(
-          //   width: getSize().width,
-          //   padding: padding(horizontal: 10, vertical: 10),
-
-          //   decoration: BoxDecoration(
-          //     borderRadius: borderRadius(),
-          //     border: Border.all(color: greyE7),
-          //   ),
-
-          //   child: Row(
-          //     children: [
-
-          //       // icon
-          //       Container(
-          //         width: 45,
-          //         height: 45,
-          //         decoration: BoxDecoration(
-          //           color: red49,
-          //           shape: BoxShape.circle,
-          //         ),
-
-          //         alignment: Alignment.center,
-          //         child: SvgPicture.asset(AppAssets.dangerSvg, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn), width: 20),
-          //       ),
-
-          //       space(0, width: 10),
-
-          //       Expanded(
-          //         child: Column(
-          //           mainAxisAlignment: MainAxisAlignment.center,
-          //           crossAxisAlignment: CrossAxisAlignment.start,
-          //           children: [
-
-          //             Text(
-          //               appText.financialApproval,
-          //               style: style14Bold(),
-          //             ),
-
-          //             space(5),
-
-          //             Text(
-          //               appText.financialApprovalDesc,
-          //               style: style12Regular().copyWith(color: greyA5),
-          //             ),
-
-          //           ],
-          //         ),
-          //       ),
-
-          //     ],
-          //   ),
-          // ),
-
-          space(12),
-
-          input(accountTypeController, accountTypeNode, appText.accountType, isBorder: true, title: appText.accountType, isReadOnly: true, rightIconPath: AppAssets.arrowDownSvg, rightIconSize: 16, onTap: () async {
-            // await MainWidget.showCurrencyDialog();
-
-            // onTapChangeState();
-          }),
-
-          space(14),
-
-          input(ibanController, ibanNode, appText.iban, isBorder: true, title: appText.iban),
-
-          space(14),
-
-          input(accountIdController, accountIdNode, appText.accountID, isBorder: true, title: appText.accountID),
-
-          // space(14),
-
-          // // identity
-          // Column(
-          //   crossAxisAlignment: CrossAxisAlignment.start,
-          //   children: [
-
-          //     Padding(
-          //       padding: padding(horizontal: 6),
-          //       child: Text(
-          //         appText.identityScan,
-          //         style: style12Regular().copyWith(color: greyA5),
-          //       ),
-          //     ),
-
-          //     space(8),
-
-          //     Row(
-          //       children: [
-
-          //         if(isApprovedIndentity)...{
-          //           Expanded(
-          //             child: button(
-          //               onTap: (){},
-          //               width: getSize().width,
-          //               height: 52,
-          //               text: appText.approved,
-          //               bgColor: greyE7,
-          //               textColor: greyB2
-          //             )
-          //           )
-          //         }else...{
-          //           Expanded(
-          //             child: button(
-          //               onTap: (){
-          //                 selectIndentityImage(ImageSource.camera);
-          //               },
-          //               width: getSize().width,
-          //               height: 52,
-          //               text: appText.camera,
-          //               bgColor: green77(),
-          //               textColor: Colors.white,
-          //               iconPath: AppAssets.camera2Svg,
-          //               iconColor: Colors.white
-          //             )
-          //           ),
-
-          //           space(0,width: 16),
-
-          //           Expanded(
-          //             child: button(
-          //               onTap: (){
-          //                 selectIndentityImage(ImageSource.gallery);
-          //               },
-          //               width: getSize().width,
-          //               height: 52,
-          //               text: appText.upload,
-          //               bgColor: green77(),
-          //               textColor: Colors.white,
-          //               iconPath: AppAssets.uploadSvg,
-          //               iconColor: Colors.white
-          //             )
-          //           ),
-          //         }
-
-          //       ],
-          //     )
-          //   ],
-          // ),
-
-          // space(14),
-
-          // // certificate
-          // Column(
-          //   crossAxisAlignment: CrossAxisAlignment.start,
-          //   children: [
-
-          //     Padding(
-          //       padding: padding(horizontal: 6),
-          //       child: Text(
-          //         appText.certificatesDocuments,
-          //         style: style12Regular().copyWith(color: greyA5),
-          //       ),
-          //     ),
-
-          //     space(8),
-
-          //     button(
-          //       onTap: (){
-          //         if(!isApprovedCertificate){
-          //           selectCertificateImage();
-          //         }
-          //       },
-          //       width: getSize().width,
-          //       height: 52,
-          //       text: isApprovedCertificate ? appText.approved : appText.upload,
-          //       bgColor: isApprovedCertificate ? greyE7 : green77(),
-          //       textColor: isApprovedCertificate ? greyA5 :Colors.white,
-          //       iconPath: isApprovedCertificate ? null : AppAssets.uploadSvg,
-          //       iconColor: Colors.white
-          //     ),
-          //   ],
-          // ),
-
-          space(14),
-
-          input(addressController, addressNode, appText.address, isBorder: true, title: appText.address),
-
-          space(150),
+          input(
+            accountTypeController,
+            accountTypeNode,
+            appText.accountType,
+            isBorder: true,
+            title: appText.accountType,
+            radius: 14,
+            isReadOnly: true,
+            rightIconPath: AppAssets.arrowDownSvg,
+            rightIconSize: 16,
+          ),
+          const SizedBox(height: 16),
+          input(ibanController, ibanNode, appText.iban,
+              isBorder: true, title: appText.iban, radius: 14),
+          const SizedBox(height: 16),
+          input(accountIdController, accountIdNode, appText.accountID,
+              isBorder: true, title: appText.accountID, radius: 14),
+          const SizedBox(height: 16),
+          input(addressController, addressNode, appText.address,
+              isBorder: true, title: appText.address, radius: 14),
+          const SizedBox(height: 16),
+          _note('Please verify your information before saving.'),
         ],
       ),
-    );
+    ]);
   }
 
   static Widget localizationPage(
@@ -366,182 +407,234 @@ class SettingWidget {
     int? districtSelectedId,
     Function(int? val) onTapDistrict,
   ) {
-    bool isOpenTimeZone = false;
-    bool isOpenCountry = false;
-    bool isOpenProvince = false;
-    bool isOpenCities = false;
-    bool isOpenDistrict = false;
+    return _LocationSettingsForm(
+      countries: countries,
+      selectedCountry: selectedCountry,
+      onTapCountry: onTapCountry,
+      timeZoneData: timeZoneData,
+      timeZoneSelected: timeZoneSelected,
+      onTapTimezone: onTapTimezone,
+      provinceSelectedId: provinceSelectedId,
+      onTapProvince: onTapProvince,
+      citySelectedId: citySelectedId,
+      onTapCity: onTapCity,
+      districtSelectedId: districtSelectedId,
+      onTapDistrict: onTapDistrict,
+    );
+  }
+}
 
-    List<LocationModel> provinces = [];
-    List<LocationModel> cities = [];
-    List<LocationModel> districts = [];
+/// Caches location lookups while interacting with drop-down menus, avoiding
+/// repeated network calls on each expansion or selection.
+class _LocationSettingsForm extends StatefulWidget {
+  final List<LocationModel> countries;
+  final LocationModel? selectedCountry;
+  final Function(LocationModel) onTapCountry;
+  final List<String> timeZoneData;
+  final String? timeZoneSelected;
+  final Function(String) onTapTimezone;
+  final int? provinceSelectedId;
+  final Function(int?) onTapProvince;
+  final int? citySelectedId;
+  final Function(int?) onTapCity;
+  final int? districtSelectedId;
+  final Function(int?) onTapDistrict;
 
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: padding(),
-      child: StatefulBuilder(builder: (context, state) {
+  const _LocationSettingsForm({
+    required this.countries,
+    required this.selectedCountry,
+    required this.onTapCountry,
+    required this.timeZoneData,
+    required this.timeZoneSelected,
+    required this.onTapTimezone,
+    required this.provinceSelectedId,
+    required this.onTapProvince,
+    required this.citySelectedId,
+    required this.onTapCity,
+    required this.districtSelectedId,
+    required this.onTapDistrict,
+  });
+
+  @override
+  State<_LocationSettingsForm> createState() => _LocationSettingsFormState();
+}
+
+class _LocationSettingsFormState extends State<_LocationSettingsForm> {
+  bool _timezoneOpen = false;
+  bool _countryOpen = false;
+  bool _provinceOpen = false;
+  bool _cityOpen = false;
+  bool _districtOpen = false;
+
+  Future<List<LocationModel>>? _provinces;
+  Future<List<LocationModel>>? _cities;
+  Future<List<LocationModel>>? _districts;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshFutures();
+  }
+
+  void _refreshFutures() {
+    final countryId = widget.selectedCountry?.id;
+    _provinces =
+        countryId == null ? null : LocationService.getProvince(countryId);
+    final provinceId = widget.provinceSelectedId;
+    _cities = provinceId == null ? null : LocationService.getCity(provinceId);
+    final cityId = widget.citySelectedId;
+    _districts = cityId == null ? null : LocationService.getDistricts(cityId);
+  }
+
+  @override
+  void didUpdateWidget(covariant _LocationSettingsForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedCountry?.id != widget.selectedCountry?.id ||
+        oldWidget.provinceSelectedId != widget.provinceSelectedId ||
+        oldWidget.citySelectedId != widget.citySelectedId) {
+      _refreshFutures();
+    }
+  }
+
+  Widget _dropdown({
+    required String label,
+    required String selected,
+    required List<String> items,
+    required bool expanded,
+    required VoidCallback toggle,
+    required Function(String, int) onSelected,
+  }) {
+    return dropDown(label, selected, items, toggle, onSelected, expanded,
+        title: label);
+  }
+
+  Widget _locationFuture({
+    required Future<List<LocationModel>>? future,
+    required String label,
+    required int? selectedId,
+    required bool isOpen,
+    required VoidCallback toggle,
+    required Function(int?) onSelect,
+  }) {
+    return FutureBuilder<List<LocationModel>>(
+      future: future,
+      builder: (context, snapshot) {
+        final items = snapshot.data ?? const <LocationModel>[];
+        String current = '';
+        for (final item in items) {
+          if (item.id == selectedId) {
+            current = item.title ?? '';
+            break;
+          }
+        }
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            space(12),
-
-            // timeZone
-            dropDown(
-                appText.timeZone,
-                timeZoneSelected ?? '',
-                List.generate(timeZoneData.length, (index) {
-                  return timeZoneData[index];
-                }), () {
-              isOpenTimeZone = !isOpenTimeZone;
-              state(() {});
-            }, (newValue, index) {
-              onTapTimezone(newValue);
-              isOpenTimeZone = false;
-              state(() {});
-            }, isOpenTimeZone, title: appText.timeZone),
-
-            space(12),
-
-            // country
-            dropDown(
-                appText.country,
-                selectedCountry?.title ?? '',
-                List.generate(countries.length, (index) {
-                  return countries[index].title ?? '';
-                }), () {
-              isOpenCountry = !isOpenCountry;
-              state(() {});
-            }, (newValue, index) {
-              onTapProvince(null);
-              onTapCity(null);
-              onTapDistrict(null);
-
-              onTapCountry(countries[index]);
-              isOpenCountry = false;
-              state(() {});
-            }, isOpenCountry, title: appText.country),
-
-            space(12),
-
-            // province
-            FutureBuilder(
-              future: selectedCountry == null ? null : LocationService.getProvince(selectedCountry.id!),
-              builder: (context, snapshot) {
-                String title = '';
-
-                if (snapshot.connectionState == ConnectionState.done) {
-                  provinces.clear();
-                  provinces.addAll(snapshot.data as List<LocationModel>);
-                }
-
-                for (var element in provinces) {
-                  if (element.id == provinceSelectedId) {
-                    title = element.title ?? '';
-                  }
-                }
-
-                return dropDown(
-                  appText.province,
-                  title,
-                  List.generate(provinces.length, (index) {
-                    return provinces[index].title ?? '';
-                  }),
-                  () {
-                    isOpenProvince = !isOpenProvince;
-                    state(() {});
-                  },
-                  (newValue, index) {
-                    onTapProvince(provinces[index].id!);
-                    isOpenProvince = false;
-                    state(() {});
-                  },
-                  isOpenProvince,
-                  title: appText.province,
-                );
+            _dropdown(
+              label: label,
+              selected: current,
+              items: items.map((item) => item.title ?? '').toList(),
+              expanded: isOpen,
+              toggle: toggle,
+              onSelected: (_, index) {
+                if (index < items.length) onSelect(items[index].id);
+                // dropDown itself calls toggle after the selection callback.
               },
             ),
-
-            space(12),
-
-            // city
-            FutureBuilder(
-              future: provinceSelectedId == null ? null : LocationService.getCity(provinceSelectedId),
-              builder: (context, snapshot) {
-                String title = '';
-
-                if (snapshot.connectionState == ConnectionState.done) {
-                  cities.clear();
-                  cities.addAll(snapshot.data as List<LocationModel>);
-                }
-
-                for (var element in cities) {
-                  if (element.id == citySelectedId) {
-                    title = element.title ?? '';
-                  }
-                }
-
-                return dropDown(
-                  appText.city,
-                  title,
-                  List.generate(cities.length, (index) {
-                    return cities[index].title ?? '';
-                  }),
-                  () {
-                    isOpenCities = !isOpenCities;
-                    state(() {});
-                  },
-                  (newValue, index) {
-                    onTapCity(cities[index].id!);
-                    isOpenCities = false;
-                    state(() {});
-                  },
-                  isOpenCities,
-                  title: appText.city,
-                );
-              },
-            ),
-
-            space(12),
-
-            // district
-            FutureBuilder(
-              future: citySelectedId == null ? null : LocationService.getDistricts(citySelectedId),
-              builder: (context, snapshot) {
-                String title = '';
-
-                if (snapshot.connectionState == ConnectionState.done) {
-                  districts.clear();
-                  districts.addAll(snapshot.data as List<LocationModel>);
-                }
-
-                for (var element in districts) {
-                  if (element.id == districtSelectedId) {
-                    title = element.title ?? '';
-                  }
-                }
-
-                return dropDown(
-                  appText.district,
-                  title,
-                  List.generate(districts.length, (index) {
-                    return districts[index].title ?? '';
-                  }),
-                  () {
-                    isOpenDistrict = !isOpenDistrict;
-                    state(() {});
-                  },
-                  (newValue, index) {
-                    onTapDistrict(districts[index].id!);
-                    isOpenDistrict = false;
-                    state(() {});
-                  },
-                  isOpenDistrict,
-                  title: appText.district,
-                );
-              },
-            )
+            if (snapshot.connectionState == ConnectionState.waiting)
+              const Padding(
+                padding: EdgeInsets.only(top: 7),
+                child: LinearProgressIndicator(minHeight: 2),
+              ),
+            if (snapshot.hasError)
+              const Padding(
+                padding: EdgeInsets.only(top: 6),
+                child: Text('Could not load locations',
+                    style: TextStyle(color: Color(0xFFDC3545), fontSize: 11)),
+              ),
           ],
         );
-      }),
+      },
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingWidget._content([
+      SettingWidget._card(
+        icon: Icons.public_rounded,
+        title: 'Location & timezone',
+        subtitle: 'Set your region and local preferences',
+        children: [
+          _dropdown(
+            label: appText.timeZone,
+            selected: widget.timeZoneSelected ?? '',
+            items: widget.timeZoneData,
+            expanded: _timezoneOpen,
+            toggle: () => setState(() {
+              _timezoneOpen = !_timezoneOpen;
+            }),
+            onSelected: (value, _) => widget.onTapTimezone(value),
+          ),
+          const SizedBox(height: 16),
+          _dropdown(
+            label: appText.country,
+            selected: widget.selectedCountry?.title ?? '',
+            items: widget.countries.map((e) => e.title ?? '').toList(),
+            expanded: _countryOpen,
+            toggle: () => setState(() {
+              _countryOpen = !_countryOpen;
+            }),
+            onSelected: (_, index) {
+              if (index >= widget.countries.length) return;
+              widget.onTapProvince(null);
+              widget.onTapCity(null);
+              widget.onTapDistrict(null);
+              widget.onTapCountry(widget.countries[index]);
+            },
+          ),
+          const SizedBox(height: 16),
+          _locationFuture(
+            future: _provinces,
+            label: appText.province,
+            selectedId: widget.provinceSelectedId,
+            isOpen: _provinceOpen,
+            toggle: () => setState(() {
+              _provinceOpen = !_provinceOpen;
+            }),
+            onSelect: (id) {
+              widget.onTapCity(null);
+              widget.onTapDistrict(null);
+              widget.onTapProvince(id);
+            },
+          ),
+          const SizedBox(height: 16),
+          _locationFuture(
+            future: _cities,
+            label: appText.city,
+            selectedId: widget.citySelectedId,
+            isOpen: _cityOpen,
+            toggle: () => setState(() {
+              _cityOpen = !_cityOpen;
+            }),
+            onSelect: (id) {
+              widget.onTapDistrict(null);
+              widget.onTapCity(id);
+            },
+          ),
+          const SizedBox(height: 16),
+          _locationFuture(
+            future: _districts,
+            label: appText.district,
+            selectedId: widget.districtSelectedId,
+            isOpen: _districtOpen,
+            toggle: () => setState(() {
+              _districtOpen = !_districtOpen;
+            }),
+            onSelect: widget.onTapDistrict,
+          ),
+        ],
+      ),
+    ]);
   }
 }

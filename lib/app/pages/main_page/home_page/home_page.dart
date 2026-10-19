@@ -8,12 +8,12 @@ import 'package:webinar/app/providers/drawer_provider.dart';
 import 'package:webinar/app/services/guest_service/course_service.dart';
 import 'package:webinar/app/services/user_service/user_service.dart';
 import 'package:webinar/app/widgets/main_widget/home_widget/home_widget.dart';
+import 'package:webinar/app/widgets/main_widget/home_widget/institutional_models_section.dart';
 import 'package:webinar/common/common.dart';
 import 'package:webinar/common/data/app_data.dart';
 import 'package:webinar/common/shimmer_component.dart';
 import 'package:webinar/common/utils/app_text.dart';
 import 'package:webinar/config/assets.dart';
-import 'package:webinar/config/colors.dart';
 import 'package:webinar/config/styles.dart';
 
 import '../../../../common/components.dart';
@@ -39,18 +39,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late AnimationController appBarController;
   late Animation<double> appBarAnimation;
 
-  double appBarHeight = 230;
-
   ScrollController scrollController = ScrollController();
-
-  PageController sliderPageController = PageController();
-  int currentSliderIndex = 0;
-
-  PageController adSliderPageController = PageController();
-  int currentAdSliderIndex = 0;
-
-  bool isLoadingFeaturedListData = false;
-  List<CourseModel> featuredListData = [];
 
   bool isLoadingNewsetListData = false;
   List<CourseModel> newsetListData = [];
@@ -119,7 +108,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void getData() {
-    isLoadingFeaturedListData = true;
     isLoadingNewsetListData = true;
     // Latest Bundles disabled on Home Page.
     // isLoadingBundleData = true;
@@ -127,14 +115,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     isLoadingBestSellingListData = true;
     isLoadingDiscountListData = true;
     isLoadingFreeListData = true;
-
-    CourseService.featuredCourse().then((value) {
-      if (!mounted) return;
-      setState(() {
-        isLoadingFeaturedListData = false;
-        featuredListData = value;
-      });
-    });
 
     // Latest Bundles disabled on Home Page.
     // CourseService.getAll(offset: 0, bundle: true).then((value) {
@@ -227,6 +207,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   @override
+  void dispose() {
+    searchController.dispose();
+    searchNode.dispose();
+    scrollController.dispose();
+    appBarController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<AppLanguageProvider>(
         builder: (context, languageProvider, _) {
@@ -236,6 +225,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           borderRadius:
               borderRadius(radius: drawerProvider.isOpenDrawer ? 20 : 0),
           child: Scaffold(
+            backgroundColor: const Color(0xFFF5F7FC),
             body: Column(
               children: [
                 // app bar
@@ -251,138 +241,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     SliverToBoxAdapter(
                       child: Column(
                         children: [
-                          // Featured Classes
-                          Column(
-                            children: [
-                              if (featuredListData != null &&
-                                  (featuredListData.isNotEmpty ||
-                                      isLoadingFeaturedListData)) ...{
-                                HomeWidget.titleAndMore(appText.featuredClasses,
-                                    isViewAll: false),
-                                SizedBox(
-                                  width: getSize().width,
-                                  height: 215,
-                                  child: PageView(
-                                    controller: sliderPageController,
-                                    onPageChanged: (value) async {
-                                      await Future.delayed(
-                                          const Duration(milliseconds: 500));
-
-                                      setState(() {
-                                        currentSliderIndex = value;
-                                      });
-                                    },
-                                    physics: const BouncingScrollPhysics(),
-                                    children: List.generate(
-                                        isLoadingFeaturedListData
-                                            ? 1
-                                            : featuredListData.length, (index) {
-                                      return isLoadingFeaturedListData
-                                          ? courseSliderItemShimmer()
-                                          : courseSliderItem(
-                                              featuredListData[index]);
-                                    }),
-                                  ),
-                                ),
-
-                                space(10),
-
-                                // indecator
-                                SizedBox(
-                                  width: getSize().width,
-                                  height: 15,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      ...List.generate(featuredListData.length,
-                                          (index) {
-                                        return AnimatedContainer(
-                                          duration:
-                                              const Duration(milliseconds: 200),
-                                          width: currentSliderIndex == index
-                                              ? 16
-                                              : 7,
-                                          height: 7,
-                                          margin: padding(horizontal: 2),
-                                          decoration: BoxDecoration(
-                                              color: green77(),
-                                              borderRadius: borderRadius()),
-                                        );
-                                      }),
-                                    ],
-                                  ),
-                                )
-                              },
-                            ],
-                          ),
-                          // Newest Classes
+                          const SizedBox(height: 8),
+                          // 1. Newest Classes
                           newestClass(),
-                          // Latest Bundles disabled on Home Page.
-                          // bundle(),
-                          // Best Rated
-                          bestRated(),
-                          /* Image Slider
-
-                                  // Image Slider
-                                  Column(
-                                    children: [
-                                      // slider
-                                      SizedBox(
-                                        width: getSize().width,
-                                        height: 200,
-                                        child: PageView.builder(
-                                          itemCount: 3,
-                                          controller: adSliderPageController,
-                                          onPageChanged: (value) {
-                                            setState(() {
-                                              currentAdSliderIndex = value;
-                                            });
-                                          },
-                                          physics: const BouncingScrollPhysics(),
-                                          itemBuilder: (context, index) {
-                                            return HomeWidget.sliderItem('https://anthropologyandculture.com/wp-content/uploads/2021/03/61632315.jpg',(){
-
-                                            });
-                                          },
-                                        ),
-                                      ),
-
-                                      space(16),
-
-                                      // indecator
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          ...List.generate(3, (index) {
-                                            return AnimatedContainer(
-                                              duration: const Duration(milliseconds: 300),
-                                              width: currentAdSliderIndex == index ? 16 : 7,
-                                              height: 7,
-                                              margin: padding(horizontal: 2),
-                                              decoration: BoxDecoration(
-                                                color: green77(),
-                                                borderRadius: borderRadius()
-                                              ),
-                                            );
-
-                                          }),
-                                        ],
-                                      ),
-
-                                    ],
-                                  ),
-                                  */
-                          space(22),
-                          // by spending points
+                          // 2. Free Courses! (by spending points) banner
                           bySpendingPoints(),
-                          space(10),
-                          // Best Selling
+                          // 3. Best Rated
+                          bestRated(),
+                          // 4. Institutional Models: Portfolio Diagnosis and Financial Planning
+                          const InstitutionalModelsSection.topRow(),
+                          // 5. Best Selling
                           bestSelling(),
-                          // Discounted Classes
+                          // 6. Institutional Models: Investment Baskets and Wealth Calculations
+                          const InstitutionalModelsSection.bottomRow(),
+                          // 7. Discounted Classes
                           discountedClasses(),
-                          // Free Classes
+                          // 8. Free Classes
                           freeClasses(),
-                          space(150),
+                          const SizedBox(height: 125),
                         ],
                       ),
                     )
@@ -396,258 +272,291 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     });
   }
 
-  Widget newestClass() {
-    if (newsetListData != null &&
-        (newsetListData.isNotEmpty || isLoadingNewsetListData)) {
-      return Column(
-        children: [
-          HomeWidget.titleAndMore(appText.newestClasses, onTapViewAll: () {
-            locator<FilterCourseProvider>().clearFilter();
-            locator<FilterCourseProvider>().sort = 'newest';
-            nextRoute(FilterCategoryPage.pageName);
-          }),
-          SizedBox(
-            width: getSize().width,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: padding(),
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(
-                    isLoadingNewsetListData ? 3 : newsetListData.length,
-                    (index) {
-                  return isLoadingNewsetListData
-                      ? courseItemShimmer()
-                      : courseItem(newsetListData[index],
-                          isFree: false, token: token);
-                }),
-              ),
-            ),
-          )
-        ],
-      );
-    } else {
+  /// Reusable carousel retains the original courseItem's pricing,
+  /// details and navigation while giving Home-only items a card surface.
+  Widget _courseSection({
+    required String title,
+    required String subtitle,
+    required bool isLoading,
+    required List<CourseModel> courses,
+    required VoidCallback onViewAll,
+    bool isFree = false,
+  }) {
+    if (!isLoading && courses.isEmpty) {
       return const SizedBox.shrink();
     }
-  }
 
-  // Latest Bundles disabled on Home Page.
-  // Uncomment this method together with the bundle state, API call, and
-  // bundle() widget call above if this section is needed again.
-  // Widget bundle() {
-  //   if ((isLoadingBundleData || bundleData.isNotEmpty) && bundleData != null) {
-  //     return Column(
-  //       children: [
-  //         HomeWidget.titleAndMore(appText.latestBundles, onTapViewAll: () {
-  //           locator<FilterCourseProvider>().clearFilter();
-  //           locator<FilterCourseProvider>().bundleCourse = true;
-  //           nextRoute(FilterCategoryPage.pageName);
-  //         }),
-  //         SizedBox(
-  //           width: getSize().width,
-  //           child: SingleChildScrollView(
-  //             physics: const BouncingScrollPhysics(),
-  //             padding: padding(),
-  //             scrollDirection: Axis.horizontal,
-  //             child: Row(
-  //               children: List.generate(isLoadingBundleData ? 3 : bundleData.length, (index) {
-  //                 return isLoadingBundleData
-  //                     ? courseItemShimmer()
-  //                     : courseItem(bundleData[index], isFree: false, token: token);
-  //               }),
-  //             ),
-  //           ),
-  //         )
-  //       ],
-  //     );
-  //   } else {
-  //     return const SizedBox.shrink();
-  //   }
-  // }
-
-  Widget bestRated() {
-    if ((isLoadingBestRatedListData || bestRatedListData.isNotEmpty) &&
-        bestRatedListData != null) {
-      return Column(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          HomeWidget.titleAndMore(appText.bestRated, onTapViewAll: () {
-            locator<FilterCourseProvider>().clearFilter();
-            locator<FilterCourseProvider>().sort = 'best_rates';
-            nextRoute(FilterCategoryPage.pageName);
-          }),
-          SizedBox(
-            width: getSize().width,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: padding(),
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(
-                    isLoadingBestRatedListData ? 3 : bestRatedListData.length,
-                    (index) {
-                  return isLoadingBestRatedListData
-                      ? courseItemShimmer()
-                      : courseItem(bestRatedListData[index],
-                          isFree: false, token: token);
-                }),
-              ),
-            ),
-          )
-        ],
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
-
-  Widget bySpendingPoints() {
-    return Container(
-      padding: padding(horizontal: 16),
-      margin: padding(),
-      width: getSize().width,
-      height: 165,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: borderRadius(),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                appText.freeCourses,
-                style: style20Bold(),
-              ),
-              space(4),
-              Text(
-                appText.bySpendingPoints,
-                style: style12Regular().copyWith(color: greyB2),
-              ),
-              space(8),
-              button(
-                  onTap: () {
-                    locator<FilterCourseProvider>().clearFilter();
-                    locator<FilterCourseProvider>().rewardCourse = true;
-                    nextRoute(FilterCategoryPage.pageName);
-                  },
-                  width: 75,
-                  height: 32,
-                  text: appText.view,
-                  bgColor: green77(),
-                  textColor: Colors.white,
-                  raduis: 10)
-            ],
+          HomeWidget.titleAndMore(
+            title,
+            subtitle: subtitle,
+            onTapViewAll: onViewAll,
           ),
-          SvgPicture.asset(AppAssets.pointsMedalSvg)
+          SizedBox(
+            height: 232,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              itemCount: isLoading ? 3 : courses.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 12),
+                  child: Container(
+                    width: 178,
+                    height: 220,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFFE7EBF4)),
+                      boxShadow: [
+                        BoxShadow(
+                          color:
+                              const Color(0xFF173259).withValues(alpha: 0.055),
+                          blurRadius: 16,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: isLoading
+                        ? courseItemShimmer(endCardPadding: 0)
+                        : courseItem(
+                            courses[index],
+                            endCardPadding: 0,
+                            token: token,
+                            isFree: isFree,
+                          ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget bestSelling() {
-    if ((isLoadingBestSellingListData || bestSellingListData.isNotEmpty) &&
-        bestSellingListData != null) {
-      return Column(
-        children: [
-          HomeWidget.titleAndMore(appText.bestSelling, onTapViewAll: () {
-            locator<FilterCourseProvider>().clearFilter();
-            locator<FilterCourseProvider>().sort = 'bestsellers';
-            nextRoute(FilterCategoryPage.pageName);
-          }),
-          SizedBox(
-            width: getSize().width,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: padding(),
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(
-                    isLoadingBestSellingListData
-                        ? 3
-                        : bestSellingListData.length, (index) {
-                  return isLoadingBestSellingListData
-                      ? courseItemShimmer()
-                      : courseItem(bestSellingListData[index],
-                          isFree: false, token: token);
-                }),
+  Widget newestClass() => _courseSection(
+        title: appText.newestClasses,
+        subtitle: 'Fresh learning, updated regularly',
+        isLoading: isLoadingNewsetListData,
+        courses: newsetListData,
+        onViewAll: () {
+          locator<FilterCourseProvider>().clearFilter();
+          locator<FilterCourseProvider>().sort = 'newest';
+          nextRoute(FilterCategoryPage.pageName);
+        },
+      );
+
+  Widget bySpendingPoints() {
+    void openRewards() {
+      locator<FilterCourseProvider>().clearFilter();
+      locator<FilterCourseProvider>().rewardCourse = true;
+      nextRoute(FilterCategoryPage.pageName);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 5, 16, 17),
+      child: Container(
+        height: 176,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF112A72), Color(0xFF244ED1), Color(0xFF517CF4)],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF244ED1).withValues(alpha: 0.16),
+              blurRadius: 20,
+              offset: const Offset(0, 9),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -35,
+              top: -75,
+              child: Container(
+                width: 190,
+                height: 190,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.10),
+                    width: 30,
+                  ),
+                ),
               ),
             ),
-          )
-        ],
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
+            Positioned(
+              right: 12,
+              bottom: -55,
+              child: Container(
+                width: 134,
+                height: 134,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.07),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 9,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'LEARNING REWARDS',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: style10Regular().copyWith(
+                              fontSize: 10,
+                              letterSpacing: 0.7,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 9),
+                        Text(
+                          appText.freeCourses,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: style20Bold().copyWith(
+                            color: Colors.white,
+                            fontSize: 21,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          appText.bySpendingPoints,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: style12Regular().copyWith(
+                            color: Colors.white.withValues(alpha: 0.82),
+                            height: 1.25,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Material(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(11),
+                          child: InkWell(
+                            onTap: openRewards,
+                            borderRadius: BorderRadius.circular(11),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 9,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    appText.view,
+                                    style: style12Bold().copyWith(
+                                      color: const Color(0xFF0D3CCF),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 7),
+                                  const Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: 15,
+                                    color: Color(0xFF0D3CCF),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 86,
+                    height: 110,
+                    child: SvgPicture.asset(
+                      AppAssets.pointsMedalSvg,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  Widget discountedClasses() {
-    if ((isLoadingDiscountListData || discountListData.isNotEmpty) &&
-        discountListData != null) {
-      return Column(
-        children: [
-          HomeWidget.titleAndMore(appText.discountedClasses, onTapViewAll: () {
-            locator<FilterCourseProvider>().clearFilter();
-            locator<FilterCourseProvider>().discount = true;
-            nextRoute(FilterCategoryPage.pageName);
-          }),
-          SizedBox(
-            width: getSize().width,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: padding(),
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(
-                    isLoadingDiscountListData ? 3 : discountListData.length,
-                    (index) {
-                  return isLoadingDiscountListData
-                      ? courseItemShimmer()
-                      : courseItem(discountListData[index],
-                          isFree: false, token: token);
-                }),
-              ),
-            ),
-          )
-        ],
+  Widget bestRated() => _courseSection(
+        title: appText.bestRated,
+        subtitle: 'Highly rated by our learners',
+        isLoading: isLoadingBestRatedListData,
+        courses: bestRatedListData,
+        onViewAll: () {
+          locator<FilterCourseProvider>().clearFilter();
+          locator<FilterCourseProvider>().sort = 'best_rates';
+          nextRoute(FilterCategoryPage.pageName);
+        },
       );
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
 
-  Widget freeClasses() {
-    if ((isLoadingFreeListData || freeListData.isNotEmpty) &&
-        freeListData != null) {
-      return Column(
-        children: [
-          HomeWidget.titleAndMore(appText.freeClasses, onTapViewAll: () {
-            locator<FilterCourseProvider>().clearFilter();
-            locator<FilterCourseProvider>().free = true;
-            nextRoute(FilterCategoryPage.pageName);
-          }),
-          SizedBox(
-            width: getSize().width,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: padding(),
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(
-                    isLoadingFreeListData ? 3 : freeListData.length, (index) {
-                  return isLoadingFreeListData
-                      ? courseItemShimmer()
-                      : courseItem(freeListData[index], token: token);
-                }),
-              ),
-            ),
-          )
-        ],
+  Widget bestSelling() => _courseSection(
+        title: appText.bestSelling,
+        subtitle: 'Most popular learning programmes',
+        isLoading: isLoadingBestSellingListData,
+        courses: bestSellingListData,
+        onViewAll: () {
+          locator<FilterCourseProvider>().clearFilter();
+          locator<FilterCourseProvider>().sort = 'bestsellers';
+          nextRoute(FilterCategoryPage.pageName);
+        },
       );
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
+
+  Widget discountedClasses() => _courseSection(
+        title: appText.discountedClasses,
+        subtitle: 'Discover courses with special pricing',
+        isLoading: isLoadingDiscountListData,
+        courses: discountListData,
+        onViewAll: () {
+          locator<FilterCourseProvider>().clearFilter();
+          locator<FilterCourseProvider>().discount = true;
+          nextRoute(FilterCategoryPage.pageName);
+        },
+      );
+
+  Widget freeClasses() => _courseSection(
+        title: appText.freeClasses,
+        subtitle: 'Start exploring at no cost',
+        isLoading: isLoadingFreeListData,
+        courses: freeListData,
+        isFree: true,
+        onViewAll: () {
+          locator<FilterCourseProvider>().clearFilter();
+          locator<FilterCourseProvider>().free = true;
+          nextRoute(FilterCategoryPage.pageName);
+        },
+      );
 }

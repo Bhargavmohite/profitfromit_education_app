@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:webinar/app/models/course_model.dart';
-import 'package:webinar/common/badges.dart';
+import 'package:webinar/common/common.dart';
 import 'package:webinar/common/utils/date_formater.dart';
+import 'package:webinar/config/styles.dart';
 
-import '../../../../common/common.dart';
-import '../../../../common/components.dart';
-import '../../../../common/utils/app_text.dart';
-import '../../../../common/utils/currency_utils.dart';
-import '../../../../config/assets.dart';
-import '../../../../config/colors.dart';
-import '../../../../config/styles.dart';
 import '../../../pages/main_page/home_page/single_course_page/single_course_page.dart';
 
+/// Shared course card used by My Courses and Offline Courses.
+/// Existing navigation and optional onTap override are preserved.
 class ClassessWidget {
+  static const _brand = Color(0xFF0D3CCF);
+  static const _text = Color(0xFF122142);
+  static const _secondary = Color(0xFF77859B);
+  static const _edge = Color(0xFFE6ECF4);
+
   static Widget classesItem(
     CourseModel courseData, {
     bool showProgress = true,
@@ -21,351 +21,318 @@ class ClassessWidget {
     bool expired = false,
     int? expiredDate,
   }) {
+    final percent = (courseData.progressPercent ?? 0).clamp(0, 100).toInt();
+    final hasProgressData = courseData.progressPercent != null;
+    final completed = percent >= 100;
+    final started = percent > 0 && !completed;
+    final Color statusColor = expired
+        ? const Color(0xFFCE4151)
+        : completed
+            ? const Color(0xFF168665)
+            : started
+                ? _brand
+                : const Color(0xFF9B6D16);
+    final String statusText = expired
+        ? 'Expired'
+        : completed
+            ? 'Completed'
+            : started
+                ? 'In progress'
+                : hasProgressData
+                    ? 'Not started'
+                    : 'Ready to learn';
+    final String actionText = expired
+        ? 'VIEW COURSE'
+        : completed
+            ? 'REVIEW COURSE'
+            : started
+                ? 'CONTINUE LEARNING'
+                : hasProgressData
+                    ? 'START LEARNING'
+                    : 'OPEN COURSE';
+
+    void openCourse() {
+      if (onTap != null) {
+        onTap();
+      } else {
+        nextRoute(
+          SingleCoursePage.pageName,
+          arguments: [courseData.id, courseData.type == 'bundle'],
+        );
+      }
+    }
+
     return Container(
-      margin: const EdgeInsetsDirectional.only(bottom: 16),
+      margin: const EdgeInsetsDirectional.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: borderRadius(),
+        borderRadius: BorderRadius.circular(21),
+        border: Border.all(color: _edge),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF203460).withValues(alpha: .055),
+            blurRadius: 18,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-      padding: padding(
-        horizontal: 10,
-        vertical: 9,
-      ),
-      width: getSize().width,
-      child: GestureDetector(
-        onTap: () {
-          if (onTap == null) {
-            nextRoute(
-              SingleCoursePage.pageName,
-              arguments: [
-                courseData.id,
-                courseData.type == 'bundle',
-              ],
-            );
-          } else {
-            onTap();
-          }
-        },
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ---------------------------------------------------------
-            // Course details
-            // ---------------------------------------------------------
-            Row(
-              children: [
-                // Image
-                ClipRRect(
-                  borderRadius: borderRadius(radius: 15),
-                  child: fadeInImage(
-                    courseData.image ?? '',
-                    130,
-                    85,
-                  ),
-                ),
-
-                // Details
-                Expanded(
-                  child: SizedBox(
-                    height: 85,
-                    child: Padding(
-                      padding: padding(horizontal: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          // -------------------------------------------------
-                          // Title
-                          // -------------------------------------------------
-                          Text(
-                            courseData.title ?? '',
-                            style: style14Bold().copyWith(
-                              height: 1.3,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-
-                          // -------------------------------------------------
-                          // Rating / Private badge
-                          // -------------------------------------------------
-                          Row(
-                            children: [
-                              ratingBar(
-                                courseData.rate ?? '0',
-                              ),
-                              if (courseData.isPrivate == 1) ...[
-                                space(
-                                  0,
-                                  width: 6,
-                                ),
-                                Badges.private(),
-                              ],
-                            ],
-                          ),
-
-                          // -------------------------------------------------
-                          // Duration and price
-                          // -------------------------------------------------
-                          Row(
-                            children: [
-                              // Duration
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                      AppAssets.timeSvg,
-                                      colorFilter: ColorFilter.mode(
-                                        greyA5,
-                                        BlendMode.srcIn,
-                                      ),
-                                    ),
-                                    space(
-                                      0,
-                                      width: 4,
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        '${formatHHMMSS(courseData.duration ?? 0)} ${appText.hours}',
-                                        style: style10Regular().copyWith(
-                                          color: greyB2,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              const SizedBox(width: 8),
-
-                              // Price
-                              Flexible(
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerRight,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        (courseData.price == 0)
-                                            ? appText.free
-                                            : CurrencyUtils.calculator(
-                                                courseData.price ?? 0,
-                                              ),
-                                        style: style12Regular().copyWith(
-                                          color: (courseData.discountPercent ??
-                                                      0) >
-                                                  0
-                                              ? greyCF
-                                              : green77(),
-                                          decoration:
-                                              (courseData.discountPercent ??
-                                                          0) >
-                                                      0
-                                                  ? TextDecoration.lineThrough
-                                                  : TextDecoration.none,
-                                          decorationColor:
-                                              (courseData.discountPercent ??
-                                                          0) >
-                                                      0
-                                                  ? greyCF
-                                                  : green77(),
-                                        ),
-                                      ),
-                                      if ((courseData.discountPercent ?? 0) >
-                                          0) ...[
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          CurrencyUtils.calculator(
-                                            (courseData.price ?? 0) -
-                                                ((courseData.price ?? 0) *
-                                                    (courseData
-                                                            .discountPercent ??
-                                                        0) ~/
-                                                    100),
-                                          ),
-                                          style: style14Regular().copyWith(
-                                            color: green77(),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(21),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: openCourse,
+          child: Padding(
+            padding: const EdgeInsets.all(13),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Keep the layout usable on narrow devices / large text sizes.
+                final small = constraints.maxWidth < 330;
+                final imageWidth = small ? 93.0 : 114.0;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: SizedBox(
+                            width: imageWidth,
+                            height: 105,
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: fadeInImage(
+                                    courseData.image ?? '',
+                                    imageWidth,
+                                    105,
                                   ),
                                 ),
+                                PositionedDirectional(
+                                  bottom: 7,
+                                  end: 7,
+                                  child: Container(
+                                    height: 27,
+                                    width: 27,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Colors.white.withValues(alpha: .94),
+                                      borderRadius: BorderRadius.circular(9),
+                                    ),
+                                    child: const Icon(
+                                      Icons.play_arrow_rounded,
+                                      color: _brand,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                courseData.title?.trim().isNotEmpty == true
+                                    ? courseData.title!
+                                    : 'Untitled course',
+                                style: style14Bold().copyWith(
+                                  color: _text,
+                                  fontSize: 14.5,
+                                  height: 1.3,
+                                ),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 7,
+                                runSpacing: 5,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.schedule_rounded,
+                                    size: 14,
+                                    color: _secondary,
+                                  ),
+                                  Text(
+                                    '${formatHHMMSS(courseData.duration ?? 0)} hrs',
+                                    style: style10Regular().copyWith(
+                                      color: _secondary,
+                                    ),
+                                  ),
+                                  if ((courseData.rate ?? '').isNotEmpty) ...[
+                                    const Icon(Icons.star_rounded,
+                                        size: 14, color: Color(0xFFF3AD3D)),
+                                    Text(
+                                      courseData.rate ?? '',
+                                      style: style10Regular()
+                                          .copyWith(color: _secondary),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              const SizedBox(height: 9),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: [
+                                  _badge(
+                                    courseData.type == 'bundle'
+                                        ? 'Bundle'
+                                        : 'Course',
+                                    const Color(0xFFEDF2FF),
+                                    _brand,
+                                  ),
+                                  if (courseData.isPrivate == 1)
+                                    _badge('Private', const Color(0xFFF4F0FF),
+                                        const Color(0xFF8153B0)),
+                                ],
                               ),
                             ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if ((courseData.category ?? '').trim().isNotEmpty) ...[
+                      const SizedBox(height: 11),
+                      Row(
+                        children: [
+                          const Icon(Icons.folder_open_rounded,
+                              size: 15, color: _secondary),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              courseData.category!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  style12Regular().copyWith(color: _secondary),
+                            ),
                           ),
                         ],
                       ),
+                    ],
+                    const SizedBox(height: 13),
+                    Container(height: 1, color: const Color(0xFFF0F3F8)),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: statusColor,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            statusText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: style12Bold().copyWith(color: statusColor),
+                          ),
+                        ),
+                        if (showProgress && hasProgressData && !expired)
+                          Text(
+                            '$percent% completed',
+                            style: style12Bold().copyWith(color: _brand),
+                          ),
+                      ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-
-            space(18),
-
-            // ---------------------------------------------------------
-            // Category and Publish Date
-            // ---------------------------------------------------------
-            Row(
-              children: [
-                // Category
-                Expanded(
-                  flex: 6,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        appText.category,
-                        style: style12Regular().copyWith(
-                          color: greyA5,
+                    if (showProgress && hasProgressData && !expired) ...[
+                      const SizedBox(height: 9),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: LinearProgressIndicator(
+                          value: percent / 100,
+                          backgroundColor: const Color(0xFFECF0F8),
+                          color: completed ? const Color(0xFF168665) : _brand,
+                          minHeight: 7,
                         ),
-                      ),
-                      space(6),
-                      Text(
-                        courseData.category ?? '',
-                        style: style14Regular(),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                  ),
-                ),
-
-                const SizedBox(width: 8),
-
-                // Publish Date
-                Expanded(
-                  flex: 4,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        appText.publishDate,
-                        style: style12Regular().copyWith(
-                          color: greyA5,
-                        ),
-                      ),
-                      space(6),
-                      Text(
-                        timeStampToDate(
-                          (courseData.createdAt ?? 0) * 1000,
-                        ),
-                        style: style14Regular(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            // ---------------------------------------------------------
-            // Progress
-            // ---------------------------------------------------------
-            if (showProgress) ...[
-              space(18),
-              SizedBox(
-                width: getSize().width,
-                child: LayoutBuilder(
-                  builder: (
-                    context,
-                    constraints,
-                  ) {
-                    double progress = (courseData.progressPercent ?? 0) / 100;
-
-                    if (progress < 0) {
-                      progress = 0;
-                    }
-
-                    if (progress > 1) {
-                      progress = 1;
-                    }
-
-                    return Container(
-                      width: constraints.maxWidth,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: borderRadius(),
-                        border: Border.all(
-                          color: greyE7,
-                        ),
-                      ),
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Container(
-                        width: constraints.maxWidth * progress,
-                        height: 6,
+                    if (expired) ...[
+                      const SizedBox(height: 9),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 9),
                         decoration: BoxDecoration(
-                          color: green77(),
-                          borderRadius: borderRadius(),
+                          color: const Color(0xFFFFF0F1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.event_busy_outlined,
+                                color: Color(0xFFCE4151), size: 16),
+                            const SizedBox(width: 7),
+                            Expanded(
+                              child: Text(
+                                (expiredDate ?? 0) > 0
+                                    ? 'Access expired on ${timeStampToDate(expiredDate! * 1000)}'
+                                    : 'Your course access has expired',
+                                style: style12Regular()
+                                    .copyWith(color: const Color(0xFFCE4151)),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
-
-            // ---------------------------------------------------------
-            // Expired
-            // ---------------------------------------------------------
-            if (expired) ...[
-              space(10),
-              Container(
-                width: getSize().width,
-                padding: padding(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: red49.withValues(
-                    alpha: .1,
-                  ),
-                  borderRadius: borderRadius(
-                    radius: 100,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    SvgPicture.asset(
-                      AppAssets.calendarEmptySvg,
-                      width: 15,
-                      colorFilter: ColorFilter.mode(
-                        red49,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    space(
-                      0,
-                      width: 6,
-                    ),
-                    Expanded(
-                      child: Text(
-                        '${appText.accessExpiresOn} '
-                        '${timeStampToDate((expiredDate ?? 0) * 1000)}',
-                        style: style14Regular().copyWith(
-                          color: red49,
-                          height: 1.4,
+                    ],
+                    const SizedBox(height: 13),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            actionText,
+                            style: style12Bold().copyWith(
+                              color: _brand,
+                              letterSpacing: .35,
+                            ),
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        Container(
+                          height: 28,
+                          width: 28,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEDF2FF),
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 17,
+                            color: _brand,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
-                ),
-              ),
-            ],
-
-            space(12),
-          ],
+                );
+              },
+            ),
+          ),
         ),
       ),
+    );
+  }
+
+  static Widget _badge(String text, Color background, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Text(text, style: style10Regular().copyWith(color: color)),
     );
   }
 }

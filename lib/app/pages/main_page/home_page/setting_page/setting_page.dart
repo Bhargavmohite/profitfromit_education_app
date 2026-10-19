@@ -19,10 +19,8 @@ import 'package:webinar/common/data/app_data.dart';
 import 'package:webinar/common/database/app_database.dart';
 import 'package:webinar/common/enums/error_enum.dart';
 import 'package:webinar/common/utils/app_text.dart';
-import 'package:webinar/config/styles.dart';
 import 'package:webinar/locator.dart';
 
-import '../../../../../config/colors.dart';
 import '../../../../models/location_model.dart';
 
 class SettingPage extends StatefulWidget {
@@ -34,7 +32,8 @@ class SettingPage extends StatefulWidget {
   State<SettingPage> createState() => _SettingPageState();
 }
 
-class _SettingPageState extends State<SettingPage> with TickerProviderStateMixin {
+class _SettingPageState extends State<SettingPage>
+    with TickerProviderStateMixin {
   late TabController tabController;
 
   bool isLocalImage = false;
@@ -114,28 +113,83 @@ class _SettingPageState extends State<SettingPage> with TickerProviderStateMixin
     districtSelectedId = locator<UserProvider>().profile?.districtId;
 
     LocationService.getCountries().then((value) {
-      countries = value;
-      selectedCountry = countries.singleWhere((element) => element.id == (locator<UserProvider>().profile?.countryId));
-
-      setState(() {});
+      if (!mounted) return;
+      setState(() {
+        countries = value;
+        final currentId = locator<UserProvider>().profile?.countryId;
+        selectedCountry = null;
+        for (final country in countries) {
+          if (country.id == currentId) {
+            selectedCountry = country;
+            break;
+          }
+        }
+      });
+    }).catchError((Object error) {
+      debugPrint('Countries loading failed: $error');
     });
 
     GuestService.getTimeZone().then((value) {
-      timeZoneData = value;
-      setState(() {});
+      if (mounted)
+        setState(() {
+          timeZoneData = value;
+        });
+    }).catchError((Object error) {
+      debugPrint('Timezones loading failed: $error');
     });
 
     UserService.getLoginHistory().then((value) {
-      loginHistory = value;
-      setState(() {});
+      if (mounted)
+        setState(() {
+          loginHistory = value;
+        });
+    }).catchError((Object error) {
+      debugPrint('Login history loading failed: $error');
     });
+  }
+
+  @override
+  void dispose() {
+    tabController.dispose();
+    for (final controller in [
+      emailController,
+      nameController,
+      phoneController,
+      refUrlController,
+      languageController,
+      currentPasswordController,
+      newPasswordController,
+      retypePasswordController,
+      accountTypeController,
+      ibanController,
+      accountIdController,
+      addressController,
+    ]) {
+      controller.dispose();
+    }
+    for (final node in [
+      emailNode,
+      nameNode,
+      phoneNode,
+      refUrlNode,
+      languageNode,
+      currentPasswordNode,
+      newPasswordNode,
+      retypePasswordNode,
+      accountTypeNode,
+      ibanNode,
+      accountIdNode,
+      addressNode,
+    ]) {
+      node.dispose();
+    }
+    super.dispose();
   }
 
   Future<File> compressImage(XFile file) async {
     Directory appDocDir = await getApplicationDocumentsDirectory();
-    String address = '${appDocDir.path}/${DateTime
-        .now()
-        .millisecondsSinceEpoch}.jpg';
+    String address =
+        '${appDocDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
     XFile? result = await FlutterImageCompress.compressAndGetFile(
       file.path,
       address,
@@ -145,366 +199,411 @@ class _SettingPageState extends State<SettingPage> with TickerProviderStateMixin
     return File(result!.path);
   }
 
+  // Matches the blue/white design language of the Home and Dashboard pages.
+  static const Color _primary = Color(0xFF0D3CCF);
+  static const Color _navy = Color(0xFF112D7E);
+  static const Color _background = Color(0xFFF5F7FC);
+  static const Color _muted = Color(0xFF75839B);
+
   @override
   Widget build(BuildContext context) {
     return directionality(
-        child: Scaffold(
-          appBar: appbar(title: appText.settings),
-          body: Stack(
-            children: [
-              Positioned.fill(
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    // image and name
-                    SliverToBoxAdapter(
-                      child: Column(
-                        children: [
-                          space(20),
-
-                          // image
-                          Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              GestureDetector(
-                                onTap: () async {
-                                  // final ImagePicker picker = ImagePicker();
-                                  // final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-                                  // if(image != null){
-                                  //   localImage = await compressImage(image);
-
-                                  //   setState(() {});
-                                  // }
-                                },
-                                child: Container(
-                                  width: 95,
-                                  height: 95,
-                                  decoration: BoxDecoration(color: Colors.white, border: Border.all(color: green77(), width: 5), shape: BoxShape.circle, boxShadow: [boxShadow(green77().withValues(alpha: .25), blur: 30, y: 2)]),
-                                  alignment: Alignment.center,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(5.0),
-                                    child: ClipRRect(
-                                      borderRadius: borderRadius(radius: 120),
-                                      child: localImage == null ? fadeInImage((locator<UserProvider>().profile?.avatar) ?? '', 80, 80) : Image.file(localImage!, width: 80, height: 80, fit: BoxFit.cover),
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              // Positioned(
-                              //   bottom: -10,
-                              //   left: 0,
-                              //   right: 0,
-                              //   child: Container(
-                              //     width: 35,
-                              //     height: 35,
-
-                              //     decoration: const BoxDecoration(
-                              //       shape: BoxShape.circle,
-                              //       color: Colors.white
-                              //     ),
-
-                              //     alignment: Alignment.center,
-                              //     child: SvgPicture.asset(AppAssets.cameraSvg),
-                              //   )
-                              // )
-                            ],
-                          ),
-
-                          space(20),
-
-                          Text(
-                            locator<UserProvider>().profile?.fullName ?? '',
-                            style: style20Bold(),
-                          ),
-
-                          space(4),
-
-                          Text(
-                            locator<UserProvider>().profile?.roleName ?? '',
-                            style: style12Regular().copyWith(color: greyA5),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SliverAppBar(
-                      pinned: true,
-                      automaticallyImplyLeading: false,
-                      backgroundColor: greyFA,
-                      titleSpacing: 0,
-                      elevation: 10,
-                      shadowColor: Colors.black12,
-                      title: tabBar((p0) {}, tabController, [
-                        Tab(text: appText.general, height: 32),
-                        Tab(text: appText.security, height: 32),
-                        Tab(text: appText.financial, height: 32),
-                        Tab(text: appText.localization, height: 32),
-                      ]),
-                    ),
-
-                    SliverFillRemaining(
-                      child: TabBarView(controller: tabController, physics: const BouncingScrollPhysics(), children: [
-                        SettingWidget.generalPage(
-                          emailController: emailController,
-                          emailNode: emailNode,
-                          nameController: nameController,
-                          nameNode: nameNode,
-                          phoneController: phoneController,
-                          phoneNode: phoneNode,
-                          refUrlController: refUrlController,
-                          refUrlNode: refUrlNode,
-                          languageController: languageController,
-                          languageNode: languageNode,
-                          newsletter: newsletter,
-                          onTapChangeState: () {
-                            setState(() {});
-                          },
-                          onTapChangeNewsletter: (value) {
-                            newsletter = value;
-                            setState(() {});
-                          },
-                          isDeleteLoading: isDeleteLoading,
-                          onDeleteClick: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return deleteAccount(context);
-                              },
-                            );
-                          },
-                        ),
-                        SettingWidget.securityPage(
-                            currentPasswordController,
-                            currentPasswordNode,
-                            newPasswordController,
-                            newPasswordNode,
-                            retypePasswordController,
-                            retypePasswordNode,
-                            loginHistory),
-                        SettingWidget.financialPage(
-                            accountTypeController,
-                            accountTypeNode,
-                            ibanController,
-                            ibanNode,
-                            accountIdController,
-                            accountIdNode,
-                            addressController,
-                            addressNode,
-                                () {
-                              setState(() {});
-                            },
-                            indentityScanImage,
-                            certificateImage,
-                            locator<UserProvider>().profile?.identityScan != null,
-                            locator<UserProvider>().profile?.certificate != null,
-                                (ImageSource source) async {
-                              //selectIndentityImage
-
-                              final ImagePicker picker = ImagePicker();
-                              final XFile? image = await picker.pickImage(source: source);
-
-                              if (image != null) {
-                                indentityScanImage = await compressImage(image);
-
-                                setState(() {});
-                              }
-                            },
-                                () async {
-                              final ImagePicker picker = ImagePicker();
-                              final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-                              if (image != null) {
-                                certificateImage = await compressImage(image);
-
-                                setState(() {});
-                              }
-                            }),
-                        SettingWidget.localizationPage(
-                          countries,
-                          selectedCountry,
-                              (data) {
-                            selectedCountry = data;
-                            setState(() {});
-                          },
-                          timeZoneData,
-                          timeZoneSelected,
-                              (data) {
-                            timeZoneSelected = data;
-                            setState(() {});
-                          },
-                          provinceSelectedId,
-                              (id) {
-                            provinceSelectedId = id;
-                            setState(() {});
-                          },
-                          citySelectedId,
-                              (id) {
-                            citySelectedId = id;
-                            setState(() {});
-                          },
-                          districtSelectedId,
-                              (id) {
-                            districtSelectedId = id;
-                            setState(() {});
-                          },
-                        )
-                      ],
-                      ),
-                    )
-                  ],
+      child: Scaffold(
+        backgroundColor: _background,
+        appBar: AppBar(
+          backgroundColor: _primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+            tooltip: 'Back',
+            onPressed: backRoute,
+          ),
+          title: Text(
+            appText.settings,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+        ),
+        body: Column(
+          children: [
+            _profileHeader(),
+            Container(
+              width: double.infinity,
+              color: Colors.white,
+              padding: const EdgeInsets.only(top: 5, bottom: 4),
+              child: TabBar(
+                controller: tabController,
+                isScrollable: true,
+                dividerColor: Colors.transparent,
+                labelColor: _primary,
+                unselectedLabelColor: _muted,
+                indicatorColor: _primary,
+                indicatorSize: TabBarIndicatorSize.label,
+                indicatorWeight: 3,
+                labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
                 ),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                ),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 17),
+                tabs: [
+                  Tab(text: appText.general),
+                  Tab(text: appText.security),
+                  Tab(text: appText.financial),
+                  Tab(text: appText.localization),
+                ],
               ),
-
-              // button
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 500),
-                bottom: 0,
-                child: Container(
-                  width: getSize().width,
-                  padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 30),
-                  decoration: BoxDecoration(color: Colors.white, boxShadow: [boxShadow(Colors.black.withValues(alpha: .1), blur: 15, y: -3)], borderRadius: const BorderRadius.vertical(top: Radius.circular(30))),
-                  child: Center(
-                    child: button(
-                        onTap: () async {
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: tabController,
+                children: [
+                  SettingWidget.generalPage(
+                    emailController: emailController,
+                    emailNode: emailNode,
+                    nameController: nameController,
+                    nameNode: nameNode,
+                    phoneController: phoneController,
+                    phoneNode: phoneNode,
+                    refUrlController: refUrlController,
+                    refUrlNode: refUrlNode,
+                    languageController: languageController,
+                    languageNode: languageNode,
+                    newsletter: newsletter,
+                    onTapChangeState: () {
+                      if (mounted) setState(() {});
+                    },
+                    onTapChangeNewsletter: (value) {
+                      setState(() {
+                        newsletter = value;
+                      });
+                    },
+                    isDeleteLoading: isDeleteLoading,
+                    onDeleteClick: () {
+                      showDialog<void>(
+                        context: context,
+                        builder: (dialogContext) =>
+                            deleteAccount(dialogContext),
+                      );
+                    },
+                  ),
+                  SettingWidget.securityPage(
+                    currentPasswordController,
+                    currentPasswordNode,
+                    newPasswordController,
+                    newPasswordNode,
+                    retypePasswordController,
+                    retypePasswordNode,
+                    loginHistory,
+                  ),
+                  SettingWidget.financialPage(
+                    accountTypeController,
+                    accountTypeNode,
+                    ibanController,
+                    ibanNode,
+                    accountIdController,
+                    accountIdNode,
+                    addressController,
+                    addressNode,
+                    () {
+                      if (mounted) setState(() {});
+                    },
+                    indentityScanImage,
+                    certificateImage,
+                    locator<UserProvider>().profile?.identityScan != null,
+                    locator<UserProvider>().profile?.certificate != null,
+                    (ImageSource source) async {
+                      final XFile? image =
+                          await ImagePicker().pickImage(source: source);
+                      if (image != null) {
+                        final file = await compressImage(image);
+                        if (mounted)
                           setState(() {
-                            isLoading = true;
+                            indentityScanImage = file;
                           });
-
-                          bool res = await UserService.updateInfo(
-                              emailController.text.trim().toEnglishDigit(),
-                              nameController.text.trim().toEnglishDigit(),
-                              phoneController.text.trim().toEnglishDigit(),
-                              timeZoneSelected ?? '',
-                              newsletter,
-                              ibanController.text.trim().toEnglishDigit(),
-                              accountTypeController.text.trim().toEnglishDigit(),
-                              accountIdController.text.trim().toEnglishDigit(),
-                              addressController.text.trim().toEnglishDigit(),
-                              selectedCountry?.id,
-                              provinceSelectedId,
-                              citySelectedId,
-                              districtSelectedId);
-
-                          if (res) {
-                            if (currentPasswordController.text
-                                .trim()
-                                .isNotEmpty && newPasswordController.text
-                                .trim()
-                                .isNotEmpty) {
-                              if (newPasswordController.text.trim().compareTo(retypePasswordController.text.trim()) == 0) {
-                                await UserService.updatePassword(
-                                  currentPasswordController.text.trim().toEnglishDigit(),
-                                  newPasswordController.text.trim().toEnglishDigit(),
-                                );
-                              } else {
-                                showSnackBar(ErrorEnum.success, appText.passwordAndRetypePassNotMatch);
-                              }
-                            }
-
-                            if (localImage != null || indentityScanImage != null || certificateImage != null) {
-                              await UserService.updateImage(localImage, indentityScanImage, certificateImage);
-                            }
-
-                            if (mounted) {
-                              backRoute();
-                            }
-                          }
-
+                      }
+                    },
+                    () async {
+                      final XFile? image = await ImagePicker()
+                          .pickImage(source: ImageSource.gallery);
+                      if (image != null) {
+                        final file = await compressImage(image);
+                        if (mounted)
                           setState(() {
-                            isLoading = false;
+                            certificateImage = file;
                           });
-                        },
-                        width: getSize().width,
-                        height: 51,
-                        text: appText.save,
-                        bgColor: green77(),
-                        textColor: Colors.white,
-                        isLoading: isLoading),
+                      }
+                    },
+                  ),
+                  SettingWidget.localizationPage(
+                    countries,
+                    selectedCountry,
+                    (data) => setState(() {
+                      selectedCountry = data;
+                    }),
+                    timeZoneData,
+                    timeZoneSelected,
+                    (data) => setState(() {
+                      timeZoneSelected = data;
+                    }),
+                    provinceSelectedId,
+                    (id) => setState(() {
+                      provinceSelectedId = id;
+                    }),
+                    citySelectedId,
+                    (id) => setState(() {
+                      citySelectedId = id;
+                    }),
+                    districtSelectedId,
+                    (id) => setState(() {
+                      districtSelectedId = id;
+                    }),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(top: BorderSide(color: Color(0xFFE9EDF6))),
+            ),
+            child: AbsorbPointer(
+              absorbing: isLoading,
+              child: button(
+                onTap: _saveSettings,
+                width: double.infinity,
+                height: 52,
+                text: appText.save,
+                bgColor: _primary,
+                textColor: Colors.white,
+                isLoading: isLoading,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _profileHeader() {
+    final profile = locator<UserProvider>().profile;
+    final avatarUrl = profile?.avatar ?? '';
+    final fullName = profile?.fullName ?? '';
+    final role = profile?.roleName ?? '';
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_primary, _navy],
+        ),
+        borderRadius: BorderRadius.circular(23),
+        boxShadow: [
+          BoxShadow(
+            color: _primary.withValues(alpha: .15),
+            blurRadius: 19,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: .8), width: 1.5),
+              color: Colors.white.withValues(alpha: .18),
+            ),
+            child: ClipOval(
+              child: localImage != null
+                  ? Image.file(localImage!, fit: BoxFit.cover)
+                  : avatarUrl.isNotEmpty
+                      ? fadeInImage(avatarUrl, 66, 66)
+                      : const ColoredBox(
+                          color: Color(0xFFDEE8FF),
+                          child: Icon(Icons.person_rounded,
+                              size: 37, color: _primary),
+                        ),
+            ),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  fullName.isEmpty ? appText.settings : fullName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    height: 1.2,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 7),
+                if (role.isNotEmpty)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      color: Colors.white.withValues(alpha: .17),
+                    ),
+                    child: Text(
+                      role,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 7),
+                const Text(
+                  'Manage your account and preferences',
+                  maxLines: 2,
+                  style: TextStyle(color: Color(0xFFDCE6FF), fontSize: 11.5),
+                ),
+              ],
+            ),
           ),
-        ));
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveSettings() async {
+    if (isLoading) return;
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final bool res = await UserService.updateInfo(
+        emailController.text.trim().toEnglishDigit(),
+        nameController.text.trim().toEnglishDigit(),
+        phoneController.text.trim().toEnglishDigit(),
+        timeZoneSelected ?? '',
+        newsletter,
+        ibanController.text.trim().toEnglishDigit(),
+        accountTypeController.text.trim().toEnglishDigit(),
+        accountIdController.text.trim().toEnglishDigit(),
+        addressController.text.trim().toEnglishDigit(),
+        selectedCountry?.id,
+        provinceSelectedId,
+        citySelectedId,
+        districtSelectedId,
+      );
+      if (!res) return;
+
+      if (currentPasswordController.text.trim().isNotEmpty &&
+          newPasswordController.text.trim().isNotEmpty) {
+        if (newPasswordController.text.trim() ==
+            retypePasswordController.text.trim()) {
+          await UserService.updatePassword(
+            currentPasswordController.text.trim().toEnglishDigit(),
+            newPasswordController.text.trim().toEnglishDigit(),
+          );
+        } else {
+          showSnackBar(ErrorEnum.error, appText.passwordAndRetypePassNotMatch);
+          return;
+        }
+      }
+      if (localImage != null ||
+          indentityScanImage != null ||
+          certificateImage != null) {
+        await UserService.updateImage(
+            localImage, indentityScanImage, certificateImage);
+      }
+      if (mounted) backRoute();
+    } catch (error) {
+      debugPrint('Settings update failed: $error');
+    } finally {
+      if (mounted)
+        setState(() {
+          isLoading = false;
+        });
+    }
   }
 
   Widget deleteAccount(BuildContext context) {
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3,),),
-      title: const Text(
-        'Delete Account',
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      content: const Column(
-        mainAxisSize: MainAxisSize.min,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      title: const Row(
         children: [
-        Text(
-        'Do you want to delete account?',
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-        ),
+          Icon(Icons.warning_amber_rounded, color: Color(0xFFDC3545)),
+          SizedBox(width: 9),
+          Expanded(
+            child: Text('Delete Account',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+          ),
         ],
+      ),
+      content: const Text(
+        'Are you sure you want to delete your account? This action cannot be undone.',
+        style: TextStyle(fontSize: 13, height: 1.5, color: _muted),
       ),
       actions: [
         TextButton(
-          child: const Text(
-            'CANCEL',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 14,
-            ),
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
         ),
         TextButton(
-          child: const Text(
-            'Delete',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 14,
-            ),
-          ),
           onPressed: () {
             Navigator.of(context).pop();
             deleteAccountAPICall();
           },
+          child: const Text('Delete',
+              style: TextStyle(
+                  color: Color(0xFFDC3545), fontWeight: FontWeight.w700)),
         ),
       ],
     );
   }
 
   Future<void> deleteAccountAPICall() async {
+    if (isDeleteLoading) return;
     setState(() {
       isDeleteLoading = true;
     });
-    bool response = await UserService.deleteAccount();
-
-    if(response) {
-      setState(() {
-        isDeleteLoading = true;
-      });
-
-      AppData.saveAccessToken('');
-      AppDataBase.clearBox();
-
-      locator<UserProvider>().clearAll();
-      locator<AppLanguageProvider>().changeState();
-      nextRoute(LoginPage.pageName, isClearBackRoutes: true);
-    } else {
-      setState(() {
-        isDeleteLoading = true;
-      });
+    try {
+      final response = await UserService.deleteAccount();
+      if (!mounted) return;
+      if (response) {
+        AppData.saveAccessToken('');
+        AppDataBase.clearBox();
+        locator<UserProvider>().clearAll();
+        locator<AppLanguageProvider>().changeState();
+        nextRoute(LoginPage.pageName, isClearBackRoutes: true);
+      }
+    } catch (error) {
+      debugPrint('Account deletion failed: $error');
+    } finally {
+      if (mounted)
+        setState(() {
+          isDeleteLoading = false;
+        });
     }
   }
 }
