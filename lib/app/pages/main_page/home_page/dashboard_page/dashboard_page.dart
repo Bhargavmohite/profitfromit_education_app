@@ -103,8 +103,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              leading: const IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded,
                     size: 20, color: Colors.white),
                 tooltip: 'Back',
                 onPressed: backRoute,

@@ -7,7 +7,6 @@ import 'package:webinar/common/common.dart';
 import 'package:webinar/common/components.dart';
 import 'package:webinar/common/utils/app_text.dart';
 import 'package:webinar/common/utils/date_formater.dart';
-import 'package:webinar/config/colors.dart';
 import 'package:webinar/config/styles.dart';
 import 'package:webinar/locator.dart';
 

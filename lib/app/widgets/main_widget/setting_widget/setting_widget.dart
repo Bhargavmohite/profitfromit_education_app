@@ -225,9 +225,9 @@ class SettingWidget {
         subtitle: 'Sensitive account actions',
         accent: _red,
         children: [
-          Text(
+          const Text(
             'Deleting your account is permanent. Please review this action carefully.',
-            style: const TextStyle(fontSize: 12, height: 1.5, color: _muted),
+            style: TextStyle(fontSize: 12, height: 1.5, color: _muted),
           ),
           const SizedBox(height: 14),
           OutlinedButton.icon(

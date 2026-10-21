@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:webinar/app/pages/main_page/home_page/investment_baskets_page/investment_baskets_page.dart';
+import 'package:webinar/app/pages/main_page/home_page/wealth_calculators_page/wealth_calculators_page.dart';
 
 /// Identifiers for the four Institutional Models cards.
 ///
@@ -18,20 +20,30 @@ enum InstitutionalModel {
 Future<void> openInstitutionalModel(
   BuildContext context,
   InstitutionalModel model,
-) {
+) async {
   switch (model) {
     case InstitutionalModel.investmentBaskets:
-      // TODO: Open the Investment Baskets page when it is implemented.
-      return showFeatureUnderDevelopment(context);
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => const InvestmentBasketsPage(),
+        ),
+      );
+      return;
     case InstitutionalModel.financialPlanning:
       // TODO: Open the Financial Planning page when it is implemented.
-      return showFeatureUnderDevelopment(context);
+      await showFeatureUnderDevelopment(context);
+      return;
     case InstitutionalModel.portfolioDiagnosis:
       // TODO: Open the Portfolio Diagnosis page when it is implemented.
-      return showFeatureUnderDevelopment(context);
+      await showFeatureUnderDevelopment(context);
+      return;
     case InstitutionalModel.wealthCalculators:
-      // TODO: Open the Wealth Calculators page when it is implemented.
-      return showFeatureUnderDevelopment(context);
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => const WealthCalculatorsPage(),
+        ),
+      );
+      return;
   }
 }
 

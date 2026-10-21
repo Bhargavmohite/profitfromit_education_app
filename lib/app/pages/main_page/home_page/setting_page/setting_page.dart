@@ -130,19 +130,21 @@ class _SettingPageState extends State<SettingPage>
     });
 
     GuestService.getTimeZone().then((value) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           timeZoneData = value;
         });
+      }
     }).catchError((Object error) {
       debugPrint('Timezones loading failed: $error');
     });
 
     UserService.getLoginHistory().then((value) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           loginHistory = value;
         });
+      }
     }).catchError((Object error) {
       debugPrint('Login history loading failed: $error');
     });
@@ -215,8 +217,8 @@ class _SettingPageState extends State<SettingPage>
           foregroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          leading: const IconButton(
+            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             tooltip: 'Back',
             onPressed: backRoute,
           ),
@@ -321,10 +323,11 @@ class _SettingPageState extends State<SettingPage>
                           await ImagePicker().pickImage(source: source);
                       if (image != null) {
                         final file = await compressImage(image);
-                        if (mounted)
+                        if (mounted) {
                           setState(() {
                             indentityScanImage = file;
                           });
+                        }
                       }
                     },
                     () async {
@@ -332,10 +335,11 @@ class _SettingPageState extends State<SettingPage>
                           .pickImage(source: ImageSource.gallery);
                       if (image != null) {
                         final file = await compressImage(image);
-                        if (mounted)
+                        if (mounted) {
                           setState(() {
                             certificateImage = file;
                           });
+                        }
                       }
                     },
                   ),
@@ -539,10 +543,11 @@ class _SettingPageState extends State<SettingPage>
     } catch (error) {
       debugPrint('Settings update failed: $error');
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(() {
           isLoading = false;
         });
+      }
     }
   }
 
@@ -600,10 +605,11 @@ class _SettingPageState extends State<SettingPage>
     } catch (error) {
       debugPrint('Account deletion failed: $error');
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(() {
           isDeleteLoading = false;
         });
+      }
     }
   }
 }

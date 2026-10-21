@@ -226,8 +226,9 @@ class _BlogsPageState extends State<BlogsPage> {
       );
 
   Widget _buildCategoryStrip() {
-    if (categories.isEmpty && selectedCategory == null)
+    if (categories.isEmpty && selectedCategory == null) {
       return const SizedBox(height: 2);
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 19),
       child: SizedBox(

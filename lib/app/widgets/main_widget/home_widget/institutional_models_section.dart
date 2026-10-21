@@ -71,8 +71,8 @@ class InstitutionalModelsSection extends StatelessWidget {
                           ),
                         )
                       : _InstitutionalModelCard(
-                          title: 'Wealth Calculations',
-                          subtitle: 'Time Machine & SIP',
+                          title: 'Wealth Calculators',
+                          subtitle: '3 Interactive Tools',
                           icon: Icons.calculate_outlined,
                           accent: const Color(0xFFAC6416),
                           tint: const Color(0xFFFFF4E5),
@@ -128,9 +128,9 @@ class _InstitutionalModelCard extends StatelessWidget {
         ),
         child: Material(
           color: Colors.white,
-          shape: RoundedRectangleBorder(
+          shape: const RoundedRectangleBorder(
             borderRadius: radius,
-            side: const BorderSide(color: Color(0xFFE5EAF3)),
+            side: BorderSide(color: Color(0xFFE5EAF3)),
           ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
