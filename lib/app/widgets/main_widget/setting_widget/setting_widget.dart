@@ -8,7 +8,6 @@ import 'package:webinar/common/utils/app_text.dart';
 import 'package:webinar/config/assets.dart';
 
 import '../../../../common/data/app_language.dart';
-import '../../../../config/colors.dart';
 import '../../../../locator.dart';
 import '../../../models/location_model.dart';
 import '../../../services/guest_service/location_service.dart';
