@@ -1,6 +1,8 @@
 // ignore_for_file: unused_import
 
 import 'package:flutter/material.dart';
+import 'package:webinar/app/pages/main_page/whats_new_page/whats_new_page.dart';
+import 'package:webinar/common/utils/whats_new_navigation.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:webinar/app/pages/authentication_page/login_page.dart';
@@ -59,6 +61,17 @@ class _MainDrawerState extends State<MainDrawer> {
         token = value;
       });
     });
+  }
+
+  Future<void> _openWhatsNew() async {
+    drawerController.hideDrawer();
+    await Future<void>.delayed(const Duration(milliseconds: 180));
+    if (!mounted) return;
+    final action = await Navigator.of(context).push<String>(
+      MaterialPageRoute<String>(builder: (_) => const WhatsNewPage()),
+    );
+    if (!mounted || action == null || action.isEmpty) return;
+    await WhatsNewNavigation.open(context, action);
   }
 
   @override
@@ -176,6 +189,12 @@ class _MainDrawerState extends State<MainDrawer> {
                             }
                             drawerController.hideDrawer();
                           }),
+                          // Accessible any time, even after the first-open prompt.
+                          menuItemIcon(
+                            "What's New",
+                            Icons.auto_awesome_rounded,
+                            _openWhatsNew,
+                          ),
                           //dashboard
                           menuItem(appText.dashboard, AppAssets.dashboardSvg,
                               () {
@@ -187,7 +206,7 @@ class _MainDrawerState extends State<MainDrawer> {
 
                           // Live Dashboard
                           menuItemIcon(
-                              "Live Dashboard", Icons.dashboard_customize_rounded,
+                              "Live Market", Icons.dashboard_customize_rounded,
                               () {
                             drawerController.hideDrawer();
                             nextRoute(LiveDashboardPage.pageName);

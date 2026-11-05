@@ -91,7 +91,8 @@ Future<Response> httpPost(String url, dynamic body,
     {Map<String, String> headers = const {},
     bool isRedirectingStatusCode = true}) async {
   debugPrint("http post request url ===================> $url");
-  debugPrint("http post request body ===================> $body");
+  // Never print request bodies: they can contain passwords, OTPs and tokens.
+  debugPrint("http post request body: [redacted]");
   var myBody = json.encode(body);
 
   if (headers.isEmpty) {

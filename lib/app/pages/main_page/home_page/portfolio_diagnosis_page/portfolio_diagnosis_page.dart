@@ -1,50 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:webinar/app/pages/main_page/home_page/portfolio_diagnosis_page/portfolio_diagnosis_widgets.dart';
+import 'package:webinar/app/pages/main_page/home_page/portfolio_diagnosis_page/portfolio_diagnosis_checkout_page.dart';
 
-/// Portfolio Diagnosis plans – presentation only; no backend or payments yet.
+/// Portfolio Diagnosis plans with embedded secure website onboarding.
 class PortfolioDiagnosisPage extends StatelessWidget {
   const PortfolioDiagnosisPage({super.key});
 
-  Future<void> _showComingSoon(BuildContext context) {
-    return showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
-        ),
-        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-        contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
-        title: const Row(
-          children: [
-            Icon(Icons.rocket_launch_rounded,
-                color: DiagnosisPalette.blue, size: 26),
-            SizedBox(width: 12),
-            Expanded(
-              child: Text('Coming Soon',
-                  style: TextStyle(
-                    color: DiagnosisPalette.ink,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                  )),
-            ),
-          ],
-        ),
-        content: const Text(
-          'This feature is under development.',
-          style: TextStyle(
-            color: DiagnosisPalette.muted,
-            fontSize: 14,
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Got it',
-                style: TextStyle(fontWeight: FontWeight.w700)),
-          ),
-        ],
+  void _openCheckout(BuildContext context, PortfolioDiagnosisPlan plan) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => PortfolioDiagnosisCheckoutPage(plan: plan),
       ),
     );
   }
@@ -99,7 +64,7 @@ class PortfolioDiagnosisPage extends StatelessWidget {
                       title: 'Individual Audit',
                       description:
                           'Single Demat review covering fundamental quality, industry diversification, and growth analysis.',
-                      price: '₹2,000',
+                      price: '₹2,000 + GST',
                       benefits: const [
                         'Single Demat Review',
                         '30m Expert Strategy Call',
@@ -109,7 +74,8 @@ class PortfolioDiagnosisPage extends StatelessWidget {
                       accent: DiagnosisPalette.blue,
                       softAccent: DiagnosisPalette.blueTint,
                       icon: Icons.manage_search_rounded,
-                      onPressed: () => _showComingSoon(context),
+                      onPressed: () => _openCheckout(
+                        context, PortfolioDiagnosisPlan.individual),
                     );
                     final family = DiagnosisPlanCard(
                       key: const ValueKey('family_wealth_audit'),
@@ -117,7 +83,7 @@ class PortfolioDiagnosisPage extends StatelessWidget {
                       title: 'Family Wealth Audit',
                       description:
                           'Scientific Portfolio Health Score and Mutual Fund overlap audit for entire household portfolios.',
-                      price: '₹6,000',
+                      price: '₹6,000 + GST',
                       benefits: const [
                         'Up to 4 Accounts',
                         '60m Comprehensive Session',
@@ -127,7 +93,8 @@ class PortfolioDiagnosisPage extends StatelessWidget {
                       accent: DiagnosisPalette.orange,
                       softAccent: DiagnosisPalette.orangeTint,
                       icon: Icons.family_restroom_rounded,
-                      onPressed: () => _showComingSoon(context),
+                      onPressed: () =>
+                          _openCheckout(context, PortfolioDiagnosisPlan.family),
                     );
 
                     if (constraints.maxWidth >= 660) {
@@ -151,12 +118,49 @@ class PortfolioDiagnosisPage extends StatelessWidget {
                     );
                   },
                 ),
+                const SizedBox(height: 20),
+                const _CheckoutInfo(),
                 const SizedBox(height: 24),
                 const DiagnosisDisclosure(),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Small advisory disclosure in the native plan-selection screen.
+class _CheckoutInfo extends StatelessWidget {
+  const _CheckoutInfo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F2FF),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline_rounded,
+              color: DiagnosisPalette.blue, size: 19),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Plan fee, GST and any eligible student discount are confirmed '
+              'during secure checkout.',
+              style: TextStyle(
+                color: DiagnosisPalette.ink,
+                fontSize: 11.5,
+                height: 1.45,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

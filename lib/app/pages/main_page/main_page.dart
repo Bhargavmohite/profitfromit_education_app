@@ -5,6 +5,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:webinar/app/pages/main_page/whats_new_page/whats_new_page.dart';
+import 'package:webinar/app/services/guest_service/whats_new_service.dart';
+import 'package:webinar/common/utils/whats_new_navigation.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:webinar/app/models/blog_model.dart';
@@ -56,6 +60,7 @@ class _MainPageState extends State<MainPage> {
 
   double bottomNavHeight = 110;
   bool _isHandlingDeepLink = false;
+  bool _checkingWhatsNew = true;
 
   @override
   void initState() {
@@ -70,7 +75,7 @@ class _MainPageState extends State<MainPage> {
     // Add drawer listener only once.
     _addDrawerListener();
 
-    _listenForDeepLinks();
+    // Deep-link and notification navigation wait until the release gate ends.
 
     future = Future<int>(() {
       return 0;
@@ -110,7 +115,53 @@ class _MainPageState extends State<MainPage> {
       }
     });
 
-    getData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showWhatsNewOncePerInstalledVersion();
+    });
+  }
+
+  Future<void> _showWhatsNewOncePerInstalledVersion() async {
+    String selectedAction = '';
+    try {
+      final PackageInfo info = await WhatsNewService.installedPackage();
+      // Already acknowledged this build: no network call or startup delay.
+      if (await WhatsNewService.hasSeen(info)) return;
+      final release = await WhatsNewService.fetch();
+      if (release == null) {
+        // The feed is optional. A network or Laravel error must not block Home.
+        debugPrint(
+            'Whats New startup unavailable: ${WhatsNewService.lastError}');
+        return;
+      }
+      final shouldShow = await WhatsNewService.shouldShow(release, info);
+      if (shouldShow && mounted) {
+        final chosen = await Navigator.of(context).push<String>(
+          MaterialPageRoute<String>(
+            builder: (_) => WhatsNewPage(release: release, isFirstOpen: true),
+          ),
+        );
+        if (!mounted) return;
+        // Ack only after the page is actually dismissed, not on fetch failure.
+        await WhatsNewService.markSeen(info);
+        selectedAction = chosen ?? '';
+      }
+    } catch (error) {
+      // An unavailable release endpoint must never prevent entering Home.
+      debugPrint('Whats New startup check skipped: $error');
+    } finally {
+      if (mounted) {
+        setState(() => _checkingWhatsNew = false);
+        _listenForDeepLinks();
+        getData();
+        if (selectedAction.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              WhatsNewNavigation.open(context, selectedAction);
+            }
+          });
+        }
+      }
+    }
   }
 
   Future<void> getData() async {
@@ -337,6 +388,17 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Show a calm loading surface while we determine whether a newly
+    // installed version needs its one-time release announcement.
+    if (_checkingWhatsNew) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF5F7FD),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF2055DC)),
+        ),
+      );
+    }
+
     final safeBottomPadding = MediaQuery.of(context).padding.bottom;
 
     debugPrint(
@@ -666,420 +728,3 @@ class BottomNavClipper extends CustomClipper<Path> {
   ) =>
       true;
 }
-
-// import 'dart:async';
-// import 'dart:io';
-//
-// import 'package:firebase_messaging/firebase_messaging.dart';
-// import 'package:flutter/foundation.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
-// import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
-// // import 'package:flutter_native_splash/flutter_native_splash.dart';
-// import 'package:provider/provider.dart';
-// import 'package:webinar/app/models/blog_model.dart';
-// import 'package:webinar/app/pages/main_page/home_page/notification_page.dart';
-// import 'package:webinar/app/pages/main_page/home_page/single_course_page/single_course_page.dart';
-// import 'package:webinar/app/providers/drawer_provider.dart';
-// import 'package:webinar/app/providers/page_provider.dart';
-// import 'package:webinar/app/services/guest_service/course_service.dart';
-// import 'package:webinar/app/services/user_service/blog_service.dart';
-// import 'package:webinar/app/services/user_service/cart_service.dart';
-// import 'package:webinar/app/services/user_service/rewards_service.dart';
-// import 'package:webinar/app/services/user_service/user_service.dart';
-// import 'package:webinar/app/widgets/main_widget/main_drawer.dart';
-// import 'package:webinar/app/widgets/main_widget/main_widget.dart';
-// import 'package:webinar/common/common.dart';
-// import 'package:webinar/common/data/app_data.dart';
-// import 'package:webinar/common/data/app_language.dart';
-// import 'package:webinar/common/database/app_database.dart';
-// import 'package:webinar/common/deeplink/deep_link_service.dart';
-// import 'package:webinar/common/deeplink/deep_link_type.dart';
-// import 'package:webinar/common/utils/app_text.dart';
-// import 'package:webinar/config/colors.dart';
-// import 'package:webinar/locator.dart';
-// import 'package:webinar/main.dart';
-//
-// import '../../../common/enums/page_name_enum.dart';
-// import '../../../common/utils/object_instance.dart';
-// import '../../../config/assets.dart';
-// import '../../providers/app_language_provider.dart';
-// import 'blog_page/details_blog_page.dart';
-//
-// class MainPage extends StatefulWidget {
-//   static const String pageName = '/main';
-//
-//   const MainPage({super.key});
-//
-//   @override
-//   State<MainPage> createState() => _MainPageState();
-// }
-//
-// class _MainPageState extends State<MainPage> {
-//   static const String tag = "_MainPageState";
-//
-//   late Future<int> future;
-//   double bottomNavHeight = 110;
-//   bool _isHandlingDeepLink = false;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//
-//     _listenForDeepLinks();
-//
-//     future = Future<int>(() {
-//       return 0;
-//     });
-//
-//     locator<DrawerProvider>().isOpenDrawer = false;
-//
-//     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-//       AppDataBase.getCoursesAndSaveInDB();
-//       addListener();
-//       if (defaultTargetPlatform == TargetPlatform.iOS) {
-//         FirebaseMessaging.instance.getAPNSToken().then((String? value) {
-//           try {
-//             if (value != null) {
-//               debugPrint('token : $value');
-//               UserService.sendFirebaseToken(value);
-//             }
-//           } catch (_) {
-//             debugPrint("Error in sending firebase token =====> ${_.toString()}");
-//           }
-//         });
-//       } else {
-//         FirebaseMessaging.instance.getToken().then((String? value) {
-//           try {
-//             if (value != null) {
-//               debugPrint('token : $value');
-//               UserService.sendFirebaseToken(value);
-//             }
-//           } catch (_) {
-//             debugPrint("Error in sending firebase token =====> ${_.toString()}");
-//           }
-//         });
-//       }
-//     });
-//
-//     getData();
-//   }
-//
-//   getData() async {
-//     CourseService.getReasons();
-//     // added to show the advertise image in popup 11-05-2026
-//     AppData.getAccessToken().then((String value) {
-//       if (value.isNotEmpty) {
-//         RewardsService.getRewards();
-//         CartService.getCart();
-//         UserService.getAllNotification();
-//       }
-//     });
-//
-//     debugPrint("is notification ===========> $showNotification");
-//     debugPrint("is show Course Notification ===========> $showCourseNotification");
-//     if (showNotification) {
-//       Future.delayed(const Duration(milliseconds: 150), () {
-//         nextRoute(NotificationPage.pageName, isClearBackRoutes: false);
-//       });
-//     }
-//     if (showCourseNotification) {
-//       Map<String, dynamic>? retrievedMap = await AppData.getCourseNotification();
-//       debugPrint("is show Course Notification retrievedMap ===========> ${retrievedMap.toString()}");
-//       if (retrievedMap != null) {
-//         Future.delayed(const Duration(milliseconds: 150), () {
-//           nextRoute(SingleCoursePage.pageName, arguments: [
-//             int.parse(retrievedMap["course_id"]),
-//             retrievedMap["type"] == 'bundle',
-//             retrievedMap["comment_id"],
-//           ]);
-//         });
-//       }
-//     }
-//   }
-//
-//   void _listenForDeepLinks() {
-//
-//     WidgetsBinding.instance.addPostFrameCallback((_) {
-//       _handleDeepLink();
-//     });
-//
-//     DeepLinkService.instance.deepLinkNotifier.addListener(
-//       _handleDeepLink,
-//     );
-//   }
-//
-//   Future<void> _handleDeepLink() async {
-//     debugPrint("MainPage DeepLink ======> ${DeepLinkService.instance.deepLinkNotifier.value}");
-//     if (_isHandlingDeepLink) {
-//       return;
-//     }
-//     final deepLink = DeepLinkService.instance.deepLinkNotifier.value;
-//     if (deepLink == null) {
-//       return;
-//     }
-//     debugPrint("$tag DeepLink Received => ${deepLink.type}");
-//
-//     _isHandlingDeepLink = true;
-//     try {
-//       switch (deepLink.type) {
-//         case DeepLinkType.blog:
-//           final String? blogId = deepLink.blogId;
-//
-//           if (blogId == null || blogId.isEmpty) {
-//             return;
-//           }
-//
-//           try {
-//             final BlogModel? blogModel = await BlogService.getBlogDataById(
-//               blogId,
-//             );
-//
-//             if (!mounted) return;
-//
-//             if (blogModel != null) {
-//               nextRoute(
-//                 DetailsBlogPage.pageName,
-//                 arguments: blogModel,
-//               );
-//             }
-//           } catch (e) {
-//             debugPrint(
-//               "$tag blog deep link error => $e",
-//             );
-//           }
-//           break;
-//         case DeepLinkType.courseLesson:
-//           final int? courseId = int.tryParse(deepLink.courseId ?? '');
-//
-//           final String? lessonId = deepLink.lessonId;
-//
-//           if (courseId == null || lessonId == null || lessonId.isEmpty) {
-//             return;
-//           }
-//
-//           nextRoute(
-//             SingleCoursePage.pageName,
-//             arguments: [
-//               courseId,
-//               null,
-//               null,
-//               null,
-//               lessonId,
-//             ],
-//           );
-//           break;
-//         case DeepLinkType.course:
-//         case DeepLinkType.unknown:
-//           break;
-//       }
-//
-//       DeepLinkService.instance.clearPending();
-//     } finally {
-//       _isHandlingDeepLink = false;
-//     }
-//   }
-//
-//   @override
-//   void dispose() {
-//     DeepLinkService.instance.deepLinkNotifier.removeListener(
-//       _handleDeepLink,
-//     );
-//     drawerController.dispose();
-//     super.dispose();
-//   }
-//
-//   addListener() {
-//     drawerController.addListener(() {
-//       if (locator<DrawerProvider>().isOpenDrawer != drawerController.value.visible) {
-//         Future.delayed(const Duration(milliseconds: 300)).then((value) {
-//           if (mounted) {
-//             locator<DrawerProvider>().setDrawerState(drawerController.value.visible);
-//           }
-//         });
-//       }
-//     });
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     // bottomNavHeight = 110;
-//     final safeBottomPadding = MediaQuery.of(context).padding.bottom;
-//     debugPrint("$tag build safeBottomPadding ============> $safeBottomPadding");
-//     debugPrint("$tag build width ============> ${MediaQuery.of(context).size.width}");
-//     debugPrint("$tag build height ============> ${MediaQuery.of(context).size.height}");
-//     if (MediaQuery.of(context).size.height > 900) {
-//       bottomNavHeight = 110 + safeBottomPadding;
-//     } else {
-//       bottomNavHeight = 110;
-//     }
-//     if (Platform.isIOS) {
-//       bottomNavHeight = 110;
-//       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.top]);
-//     }
-//     return PopScope(
-//       canPop: false,
-//       onPopInvoked: (v) {
-//         if (locator<PageProvider>().page == PageNames.home) {
-//           MainWidget.showExitDialog();
-//         } else {
-//           locator<PageProvider>().setPage(PageNames.home);
-//         }
-//       },
-//       child: Consumer<AppLanguageProvider>(builder: (context, languageProvider, _) {
-//         drawerController = AdvancedDrawerController();
-//         if (locator<DrawerProvider>().isOpenDrawer) {
-//           drawerController.showDrawer();
-//         } else {
-//           drawerController.hideDrawer();
-//         }
-//
-//         addListener();
-//
-//         return directionality(
-//           child: Scaffold(
-//             resizeToAvoidBottomInset: false,
-//             backgroundColor: green77(),
-//             body: Consumer<PageProvider>(builder: (context, pageProvider, _) {
-//               return AdvancedDrawer(
-//                 key: UniqueKey(),
-//                 disabledGestures: pageProvider.page == PageNames.latestEvents,
-//                 backdropColor: Colors.transparent,
-//                 drawer: const MainDrawer(),
-//                 openRatio: .6,
-//                 openScale: .75,
-//                 animationDuration: const Duration(milliseconds: 150),
-//                 animateChildDecoration: false,
-//                 animationCurve: Curves.linear,
-//                 controller: drawerController,
-//                 childDecoration: BoxDecoration(
-//                     // borderRadius: Platform.isIOS ? borderRadius() : const BorderRadius.vertical(top: Radius.circular(21)),
-//                     // borderRadius: kIsWeb ? null : borderRadius(radius: isOpen ? 20 : 0),
-//                     color: Colors.transparent,
-//                     boxShadow: [BoxShadow(color: Colors.black.withOpacity(.12), blurRadius: 30, offset: const Offset(0, 10))]),
-//                 rtlOpening: locator<AppLanguage>().isRtl(),
-//                 // background
-//                 backdrop: Container(
-//                   width: getSize().width,
-//                   height: getSize().height,
-//                   color: green63,
-//
-//                   // decoration: const BoxDecoration(
-//                   //   image: DecorationImage(
-//                   //     image: AssetImage(AppAssets.splashPng),
-//                   //     fit: BoxFit.cover,
-//                   //   )
-//                   // ),
-//                   child: Column(
-//                     crossAxisAlignment: CrossAxisAlignment.start,
-//                     children: [
-//                       space(60),
-//                       Image.asset(
-//                         AppAssets.worldPng,
-//                         width: getSize().width * .8,
-//                         fit: BoxFit.cover,
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//                 child: SafeArea(
-//                   bottom: !kIsWeb && Platform.isAndroid,
-//                   top: false,
-//                   child: Scaffold(
-//                     backgroundColor: Colors.transparent,
-//                     resizeToAvoidBottomInset: false,
-//                     extendBody: true,
-//                     body: pageProvider.pages[pageProvider.page],
-//                     bottomNavigationBar: Directionality(
-//                       textDirection: TextDirection.ltr,
-//                       child: Consumer<DrawerProvider>(builder: (context, drawerProvider, _) {
-//                         return Stack(
-//                           children: [
-//                             // background
-//                             Positioned.fill(
-//                               bottom: 0,
-//                               top: getSize().height - bottomNavHeight,
-//                               child: ClipRRect(
-//                                 borderRadius: BorderRadius.vertical(bottom: drawerProvider.isOpenDrawer ? const Radius.circular(kIsWeb ? 0 : 20) : Radius.zero),
-//                                 child: ClipPath(
-//                                   clipper: BottomNavClipper(),
-//                                   child: Container(
-//                                     width: getSize().width,
-//                                     height: bottomNavHeight,
-//                                     // decoration: BoxDecoration(gradient: LinearGradient(colors: [green77(), green4B], begin: Alignment.topLeft, end: Alignment.bottomRight)),
-//                                     decoration: BoxDecoration(gradient: LinearGradient(colors: [green77(), green77()], begin: Alignment.topLeft, end: Alignment.bottomRight)),
-//                                   ),
-//                                 ),
-//                               ),
-//                             ),
-//
-//                             Positioned.fill(
-//                               bottom: 0,
-//                               top: getSize().height - bottomNavHeight,
-//                               child: Row(
-//                                 mainAxisAlignment: MainAxisAlignment.center,
-//                                 children: [
-//                                   MainWidget.navItem(PageNames.categories, pageProvider.page, appText.categories, AppAssets.categorySvg, () {
-//                                     pageProvider.setPage(PageNames.categories);
-//                                   }),
-//                                   // added latest event menu and remove provider on 06-05-2026
-//                                   MainWidget.navItem(PageNames.latestEvents, pageProvider.page, appText.latestEvents, AppAssets.meetingsSvg, () {
-//                                     pageProvider.setPage(PageNames.latestEvents);
-//                                   }),
-//                                   // MainWidget.navItem(PageNames.providers, pageProvider.page, appText.providers, AppAssets.provideresSvg, () {
-//                                   //   pageProvider.setPage(PageNames.providers);
-//                                   // }),
-//                                   MainWidget.homeNavItem(PageNames.home, pageProvider.page, () {
-//                                     pageProvider.setPage(PageNames.home);
-//                                   }),
-//                                   MainWidget.navItem(PageNames.blog, pageProvider.page, appText.blog, AppAssets.blogSvg, () {
-//                                     pageProvider.setPage(PageNames.blog);
-//                                   }),
-//                                   MainWidget.navItem(PageNames.myClasses, pageProvider.page, appText.myClassess, AppAssets.classesSvg, () {
-//                                     pageProvider.setPage(PageNames.myClasses);
-//                                   }),
-//                                 ],
-//                               ),
-//                             ),
-//                           ],
-//                         );
-//                       }),
-//                     ),
-//                   ),
-//                 ),
-//               );
-//             }),
-//           ),
-//         );
-//       }),
-//     );
-//   }
-// }
-//
-// class BottomNavClipper extends CustomClipper<Path> {
-//   @override
-//   Path getClip(Size size) {
-//     double height = size.height;
-//     double width = size.width;
-//
-//     Path path = Path();
-//
-//     path.lineTo(0, 0);
-//     path.lineTo(0, height);
-//     path.lineTo(width, height);
-//
-//     path.lineTo(size.width, 0);
-//     path.quadraticBezierTo(width, 45, width - 45, 45);
-//
-//     path.lineTo(45, 45);
-//
-//     path.quadraticBezierTo(0, 45, 0, 0);
-//
-//     // path.moveTo(0, 0);
-//     path.close();
-//     return path;
-//   }
-//
-//   @override
-//   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => true;
-// }

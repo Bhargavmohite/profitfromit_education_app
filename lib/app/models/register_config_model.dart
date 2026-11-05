@@ -39,8 +39,13 @@ class RegisterConfigModel {
 
   RegisterConfigModel.fromJson(Map<String, dynamic> json) {
     selectedTimezone = json['selectedTimezone'];
-    selectRolesDuringRegistration =
-        json['selectRolesDuringRegistration'].cast<String>();
+    // The student registration endpoint may omit this optional field.
+    // Previously .cast<String>() on null threw and silently discarded
+    // the whole configuration in GuestService.registerConfig().
+    final roles = json['selectRolesDuringRegistration'];
+    selectRolesDuringRegistration = roles is List
+        ? roles.map((role) => role.toString()).toList()
+        : <String>[];
     showCertificateAdditionalInRegister =
         json['showCertificateAdditionalInRegister'];
     showOtherRegisterMethod = json['showOtherRegisterMethod'];

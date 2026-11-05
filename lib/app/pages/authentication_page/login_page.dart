@@ -18,6 +18,7 @@ import 'package:webinar/app/pages/main_page/main_page.dart';
 import 'package:webinar/app/providers/page_provider.dart';
 import 'package:webinar/app/services/authentication_service/authentication_service.dart';
 import 'package:webinar/app/widgets/authentication_widget/auth_widget.dart';
+import 'package:webinar/app/widgets/authentication_widget/auth_design.dart';
 import 'package:webinar/app/widgets/authentication_widget/register_widget/register_widget.dart';
 import 'package:webinar/app/widgets/main_widget/main_widget.dart';
 import 'package:webinar/common/common.dart';
@@ -108,54 +109,57 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (re) {
+      onPopInvoked: (_) {
         MainWidget.showExitDialog();
       },
       child: directionality(
-          child: Scaffold(
-        body: Stack(
-          children: [
-            Positioned.fill(
-                child: Image.asset(
-              AppAssets.introBgPng,
-              width: getSize().width,
-              height: getSize().height,
-              fit: BoxFit.cover,
-            )),
-            Positioned.fill(
-                child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: padding(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  space(getSize().height * .11),
-
-                  // title
-                  Row(
-                    children: [
-                      Text(
-                        appText.welcomeBack,
-                        style: style24Bold(),
-                      ),
-                      space(0, width: 4),
-                      SvgPicture.asset(AppAssets.emoji2Svg)
-                    ],
+        child: AuthPageFrame(
+          eyebrow: 'Welcome back',
+          title: appText.welcomeBack,
+          subtitle: appText.welcomeBackDesc,
+          icon: Icons.lock_open_rounded,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+                  // Keep the content centered while retaining left-aligned input labels.
+                  const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Sign in to your account',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 20,
+                            height: 1.25,
+                            fontWeight: FontWeight.w800,
+                            color: AuthDesign.ink,
+                          ),
+                        ),
+                        SizedBox(height: 7),
+                        Text(
+                          'Access your courses and continue your learning journey.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: AuthDesign.muted,
+                            fontSize: 12.5,
+                            height: 1.5,
+                          ),
+                        ),
+                        SizedBox(height: 22),
+                      ],
+                    ),
                   ),
 
-                  // desc
-                  Text(
-                    appText.welcomeBackDesc,
-                    style: style14Regular().copyWith(color: greyA5),
-                  ),
-
-                  space(50),
-
-                  // google and facebook auth
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (PublicData.apiConfigData?['show_google_login_button'] ?? false) ...{
+                  // Existing Google, Facebook and Apple sign-in handlers remain intact.
+                  if ((PublicData.apiConfigData?['show_google_login_button'] == true) ||
+                      (PublicData.apiConfigData?['show_facebook_login_button'] == true) ||
+                      (Platform.isIOS && PublicData.apiConfigData?['show_apple_login_button'] == true))
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (PublicData.apiConfigData?['show_google_login_button'] ?? false) ...{
                         socialWidget(AppAssets.googleSvg, () async {
                             debugPrint("======================================");
                           debugPrint("GOOGLE BUTTON CLICKED");
@@ -239,7 +243,7 @@ class _LoginPageState extends State<LoginPage> {
                             debugPrintStack(stackTrace: stackTrace);
                           }
                         }),
-                        space(0, width: 20),
+                        space(0, width: 10),
                       },
                       if (PublicData.apiConfigData?['show_facebook_login_button'] ?? false) ...{
                         socialWidget(AppAssets.facebookSvg, () async {
@@ -280,7 +284,7 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       if (Platform.isIOS)
                         if (PublicData.apiConfigData?['show_apple_login_button'] ?? false) ...{
-                          space(0, width: 20),
+                          space(0, width: 10),
                           socialWidget(AppAssets.appleSvg, () async {
                             try {
                               debugPrint("user  clicked  =================> ");
@@ -320,7 +324,10 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
 
-                  space(25),
+                  if ((PublicData.apiConfigData?['show_google_login_button'] == true) ||
+                      (PublicData.apiConfigData?['show_facebook_login_button'] == true) ||
+                      (Platform.isIOS && PublicData.apiConfigData?['show_apple_login_button'] == true))
+                    const AuthSocialDivider(label: 'OR USE YOUR ACCOUNT'),
 
                   // Other Register Method
                   if (PublicData.apiConfigData?['showOtherRegisterMethod'] == '1') ...{
@@ -353,6 +360,7 @@ class _LoginPageState extends State<LoginPage> {
                     space(15),
                   },
 
+                  const AuthFieldHeading('Your account'),
                   // input
                   Column(
                     children: [
@@ -372,36 +380,72 @@ class _LoginPageState extends State<LoginPage> {
                               },
                               behavior: HitTestBehavior.opaque,
                               child: Container(
-                                width: 52,
+                                constraints: const BoxConstraints(minWidth: 86),
                                 height: 52,
-                                decoration: BoxDecoration(color: Colors.white, borderRadius: borderRadius()),
-                                alignment: Alignment.center,
-                                child: ClipRRect(
-                                  borderRadius: borderRadius(radius: 50),
-                                  child: Image.asset(
-                                    countryCode.flagUri ?? '',
-                                    width: 21,
-                                    height: 19,
-                                    fit: BoxFit.cover,
-                                  ),
+                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                decoration: BoxDecoration(
+                                  color: AuthDesign.field,
+                                  borderRadius: BorderRadius.circular(13),
+                                  border: Border.all(color: const Color(0xFFE1E9F3)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(3),
+                                      child: Image.asset(
+                                        countryCode.flagUri ?? '',
+                                        width: 21,
+                                        height: 17,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      countryCode.dialCode ?? '+91',
+                                      style: const TextStyle(
+                                        color: AuthDesign.ink,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
 
                             space(0, width: 15),
 
-                            Expanded(child: input(mailController, mailNode, appText.phoneNumber))
+                            Expanded(child: input(mailController, mailNode, appText.phoneNumber, isBorder: true, radius: 13, fillColor: AuthDesign.field))
                           ],
                         )
                       } else ...{
-                        input(mailController, mailNode, appText.email, iconPathLeft: AppAssets.mailSvg, leftIconSize: 14),
+                        input(mailController, mailNode, appText.email, iconPathLeft: AppAssets.mailSvg, leftIconSize: 14, isBorder: true, radius: 13, fillColor: AuthDesign.field),
                       },
                       space(16),
-                      input(passwordController, passwordNode, appText.password, iconPathLeft: AppAssets.passwordSvg, leftIconSize: 14, isPassword: true),
+                      const AuthFieldHeading('Password'),
+                      input(passwordController, passwordNode, appText.password, iconPathLeft: AppAssets.passwordSvg, leftIconSize: 14, isPassword: true, isBorder: true, radius: 13, fillColor: AuthDesign.field),
                     ],
                   ),
 
-                  space(32),
+                  const SizedBox(height: 14),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => nextRoute(ForgetPasswordPage.pageName),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AuthDesign.blue,
+                        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 7),
+                        minimumSize: const Size(0, 36),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        appText.forgetPassword,
+                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
                   // button
                   Center(
@@ -409,13 +453,14 @@ class _LoginPageState extends State<LoginPage> {
                         onTap: () async {
                           FocusScope.of(context).unfocus();
 
-                          if (mailController.text.trim().isNotEmpty && passwordController.text.trim().isNotEmpty) {
+                          if (!isSendingData && mailController.text.trim().isNotEmpty && passwordController.text.trim().isNotEmpty) {
                             setState(() {
                               isSendingData = true;
                             });
 
                             bool res = await AuthenticationService.login('${isPhoneNumber ? countryCode.dialCode!.replaceAll('+', '') : ''}${mailController.text.trim()}', passwordController.text.trim());
 
+                            if (!mounted) return;
                             setState(() {
                               isSendingData = false;
                             });
@@ -440,9 +485,10 @@ class _LoginPageState extends State<LoginPage> {
                           }
                         },
                         width: getSize().width,
-                        height: 52,
+                        height: 54,
+                        raduis: 14,
                         text: appText.login,
-                        bgColor: isEmptyInputs ? greyCF : green77(),
+                        bgColor: isEmptyInputs ? const Color(0xFFADBBD0) : AuthDesign.blue,
                         textColor: Colors.white,
                         borderColor: Colors.transparent,
                         isLoading: isSendingData),
@@ -465,17 +511,20 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
 
-                  space(80),
+                  const SizedBox(height: 22),
 
                   // haveAnAccount
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        appText.dontHaveAnAccount,
+                  Center(
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      runAlignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 4,
+                      children: [
+                        Text(
+                          appText.dontHaveAnAccount,
                         style: style16Regular(),
                       ),
-                      space(0, width: 2),
                       GestureDetector(
                         onTap: () {
                           nextRoute(RegisterPage.pageName, isClearBackRoutes: true);
@@ -483,35 +532,28 @@ class _LoginPageState extends State<LoginPage> {
                         behavior: HitTestBehavior.opaque,
                         child: Text(
                           appText.signup,
-                          style: style16Regular(),
+                          style: style16Bold().copyWith(color: AuthDesign.blue),
                         ),
-                      )
-                    ],
-                  ),
-
-                  space(25),
-
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        nextRoute(ForgetPasswordPage.pageName);
-                      },
-                      behavior: HitTestBehavior.opaque,
-                      child: Text(
-                        appText.forgetPassword,
-                        style: style16Regular().copyWith(color: greyB2),
                       ),
+                      ],
                     ),
                   ),
 
-                  space(25),
-                ],
-              ),
-            ))
-          ],
+                  const SizedBox(height: 5),
+            ],
+          ),
         ),
-      )),
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    mailController.dispose();
+    passwordController.dispose();
+    mailNode.dispose();
+    passwordNode.dispose();
+    super.dispose();
   }
 
   socialWidget(String icon, Function onTap) {
@@ -520,12 +562,13 @@ class _LoginPageState extends State<LoginPage> {
         onTap();
       },
       child: Container(
-        width: 98,
+        width: 75,
         height: 52,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: borderRadius(radius: 16),
+          color: AuthDesign.field,
+          border: Border.all(color: const Color(0xFFE1E9F3)),
+          borderRadius: borderRadius(radius: 13),
         ),
         child: SvgPicture.asset(
           icon,

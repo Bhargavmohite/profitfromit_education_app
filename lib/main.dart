@@ -34,6 +34,7 @@ import 'package:webinar/app/pages/offline_page/internet_connection_page.dart';
 import 'package:webinar/app/pages/offline_page/offline_list_course_page.dart';
 import 'package:webinar/app/pages/offline_page/offline_single_content_page.dart';
 import 'package:webinar/app/pages/offline_page/offline_single_course_page.dart';
+import 'package:webinar/app/widgets/seasonal/diwali_greeting_gate.dart';
 import 'package:webinar/app/providers/drawer_provider.dart';
 import 'package:webinar/common/data/app_data.dart';
 import 'package:webinar/common/data/app_language.dart';
@@ -187,6 +188,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  // Used only to show the Diwali greeting on Login and Main (Home).
+  final DiwaliRouteObserver _diwaliRouteObserver = DiwaliRouteObserver();
   FirebaseAnalyticsObserver? analyticsObserver;
 
   @override
@@ -198,6 +201,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
+    _diwaliRouteObserver.dispose();
     super.dispose();
   }
 
@@ -225,8 +229,14 @@ class _MyAppState extends State<MyApp> {
         navigatorObservers: <NavigatorObserver>[
           analyticsObserver!,
           Constants.singleCourseRouteObserver,
-          Constants.contentRouteObserver
+          Constants.contentRouteObserver,
+          _diwaliRouteObserver,
         ],
+        // Overlay above the active screen. No changes to login or navigation.
+        builder: (context, child) => DiwaliGreetingGate(
+          routeObserver: _diwaliRouteObserver,
+          child: child ?? const SizedBox.shrink(),
+        ),
         scrollBehavior: ScrollConfiguration.of(context).copyWith(
           dragDevices: {
             PointerDeviceKind.touch,

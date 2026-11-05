@@ -76,6 +76,8 @@ dependencies:
   firebase_analytics: ^11.6.0
   firebase_crashlytics: ^4.0.0
   vimeo_video_player: ^1.0.3
+  easebuzz_flutter: ^0.0.9
+  google_mlkit_translation: ^0.15.1
 #  easebuzz_flutter: ^0.0.3
 
 

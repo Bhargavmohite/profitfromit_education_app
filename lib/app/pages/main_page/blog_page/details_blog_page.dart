@@ -1,11 +1,15 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:html/parser.dart' as html_parser;
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:webinar/app/models/blog_model.dart';
 import 'package:webinar/app/models/user_model.dart';
 import 'package:webinar/app/services/user_service/blog_service.dart';
+import 'package:webinar/app/services/tts_service/lesson_translation_service.dart';
 import 'package:webinar/app/widgets/main_widget/blog_widget/blog_design_widgets.dart';
 import 'package:webinar/app/widgets/main_widget/blog_widget/blog_widget.dart';
 import 'package:webinar/common/common.dart';
@@ -25,10 +29,289 @@ class DetailsBlogPage extends StatefulWidget {
   State<DetailsBlogPage> createState() => _DetailsBlogPageState();
 }
 
-class _DetailsBlogPageState extends State<DetailsBlogPage> {
+class _DetailsBlogPageState extends State<DetailsBlogPage>
+    with WidgetsBindingObserver {
   BlogModel? blogModel;
   bool userIsLogin = false;
   bool _routeRead = false;
+
+  // Blog text-to-speech is scoped to this page. Nothing is added to the
+  // blog list or the course lesson reader.
+  final FlutterTts _tts = FlutterTts();
+  final LessonTranslationService _translator = LessonTranslationService();
+  LessonSpeechLanguage _speechLanguage = LessonSpeechLanguage.english;
+  List<String> _speechChunks = <String>[];
+  int _speechChunkIndex = 0;
+  int _resumeOffset = 0;
+  int _chunkBaseOffset = 0;
+  int _speechGeneration = 0;
+  bool _isSpeaking = false;
+  bool _isPreparingSpeech = false;
+  bool _isSpeechPaused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _configureSpeechHandlers();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      if (_isSpeaking) unawaited(_pauseSpeech());
+    }
+  }
+
+  @override
+  void dispose() {
+    _speechGeneration++; // Invalidate in-flight translation / TTS callbacks.
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_tts.stop());
+    super.dispose();
+  }
+
+  void _configureSpeechHandlers() {
+    _tts.setCompletionHandler(() {
+      if (!mounted || !_isSpeaking || _isSpeechPaused) return;
+      final generation = _speechGeneration;
+      _speechChunkIndex++;
+      _resumeOffset = 0;
+      if (_speechChunkIndex >= _speechChunks.length) {
+        setState(() {
+          _isSpeaking = false;
+          _isSpeechPaused = false;
+        });
+      } else {
+        Future<void>.delayed(Duration.zero, () => _speakChunk(generation));
+      }
+    });
+
+    _tts.setProgressHandler(
+        (String text, int startOffset, int endOffset, String word) {
+      if (!mounted || !_isSpeaking || _isSpeechPaused) return;
+      if (_speechChunkIndex >= _speechChunks.length) return;
+      final length = _speechChunks[_speechChunkIndex].length;
+      _resumeOffset = (_chunkBaseOffset + endOffset).clamp(0, length).toInt();
+    });
+
+    _tts.setErrorHandler((dynamic message) {
+      if (!mounted) return;
+      _speechGeneration++;
+      setState(() {
+        _isSpeaking = false;
+        _isPreparingSpeech = false;
+        _isSpeechPaused = false;
+      });
+      _speechNotice('Unable to read this article: $message');
+    });
+
+    // flutter_tts.setCancelHandler takes a zero-argument callback.
+    _tts.setCancelHandler(() {});
+  }
+
+  void _speechNotice(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+    );
+  }
+
+  String _blogSpeechText() {
+    final title = (blogModel?.title ?? '').trim();
+    final body = (html_parser.parse(blogModel?.content ?? '').body?.text ?? '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return [title, body].where((value) => value.isNotEmpty).join('. ');
+  }
+
+  Future<String> _resolveSpeechLocale(LessonSpeechLanguage language) async {
+    final requested = language.speechLocale.toLowerCase().replaceAll('_', '-');
+    final baseLanguage = requested.split('-').first;
+    final dynamic installed = await _tts.getLanguages;
+    if (installed is! List) {
+      throw StateError('Unable to check installed speech voices.');
+    }
+    final locales = installed.map((value) => value.toString()).toList();
+    String normalize(String locale) =>
+        locale.toLowerCase().replaceAll('_', '-');
+
+    for (final locale in locales) {
+      if (normalize(locale) == requested) return locale;
+    }
+    for (final locale in locales) {
+      final normalized = normalize(locale);
+      if (normalized == baseLanguage ||
+          normalized.startsWith('$baseLanguage-')) {
+        return locale;
+      }
+    }
+    throw StateError(
+      '${language.label} voice is not installed on this device. '
+      'Install it in Android/iOS Text-to-Speech settings.',
+    );
+  }
+
+  Future<void> _stopSpeech({bool reset = true}) async {
+    _speechGeneration++;
+    _isSpeechPaused = false;
+    if (mounted) {
+      setState(() {
+        _isSpeaking = false;
+        _isPreparingSpeech = false;
+      });
+    }
+    await _tts.stop();
+    if (reset) {
+      _speechChunks = <String>[];
+      _speechChunkIndex = 0;
+      _resumeOffset = 0;
+      _chunkBaseOffset = 0;
+    }
+  }
+
+  Future<void> _pauseSpeech() async {
+    if (!_isSpeaking) return;
+    _speechGeneration++;
+    _isSpeechPaused = true;
+    if (mounted) setState(() => _isSpeaking = false);
+    await _tts.stop();
+  }
+
+  Future<void> _startSpeech() async {
+    if (_isSpeaking || _isPreparingSpeech) return;
+    final text = _blogSpeechText();
+    if (text.isEmpty) {
+      _speechNotice('This blog post has no readable text.');
+      return;
+    }
+    if (!_speechLanguage.supportsOnDeviceNarration) {
+      _speechNotice('${_speechLanguage.label} is not available yet.');
+      return;
+    }
+
+    final generation = ++_speechGeneration;
+    final resume = _isSpeechPaused &&
+        _speechChunks.isNotEmpty &&
+        _speechChunkIndex < _speechChunks.length;
+    setState(() {
+      _isPreparingSpeech = true;
+      _isSpeechPaused = false;
+    });
+
+    try {
+      // Fail explicitly when a compatible voice is not available; don't
+      // silently narrate Hindi or English as another language.
+      final voice = await _resolveSpeechLocale(_speechLanguage);
+      if (!mounted || generation != _speechGeneration) return;
+      await _tts.setLanguage(voice);
+      await _tts.setSpeechRate(0.48);
+      if (Platform.isIOS) await _tts.setSharedInstance(true);
+      if (!mounted || generation != _speechGeneration) return;
+
+      if (!resume) {
+        final translated = await _translator.prepare(text, _speechLanguage);
+        if (!mounted || generation != _speechGeneration) return;
+        _speechChunks = splitAtWordBoundary(translated, 1200);
+        _speechChunkIndex = 0;
+        _resumeOffset = 0;
+      }
+      if (_speechChunks.isEmpty) {
+        throw StateError('There is no readable content to play.');
+      }
+      if (!mounted || generation != _speechGeneration) return;
+      setState(() {
+        _isPreparingSpeech = false;
+        _isSpeaking = true;
+      });
+      await _speakChunk(generation);
+    } catch (error) {
+      if (!mounted || generation != _speechGeneration) return;
+      setState(() {
+        _isSpeaking = false;
+        _isPreparingSpeech = false;
+        _isSpeechPaused = false;
+      });
+      _speechNotice('Unable to start ${_speechLanguage.label} audio: $error');
+    }
+  }
+
+  Future<void> _speakChunk(int generation) async {
+    if (!mounted || generation != _speechGeneration || !_isSpeaking) return;
+    if (_speechChunkIndex >= _speechChunks.length) return;
+    final chunk = _speechChunks[_speechChunkIndex];
+    if (_resumeOffset >= chunk.length) {
+      _speechChunkIndex++;
+      _resumeOffset = 0;
+      if (_speechChunkIndex < _speechChunks.length) {
+        return _speakChunk(generation);
+      }
+      if (mounted) setState(() => _isSpeaking = false);
+      return;
+    }
+    _chunkBaseOffset = _resumeOffset;
+    try {
+      final result = await _tts.speak(chunk.substring(_resumeOffset));
+      if (result == 0 && mounted && generation == _speechGeneration) {
+        throw StateError('The speech engine rejected this text.');
+      }
+    } catch (error) {
+      if (!mounted || generation != _speechGeneration) return;
+      setState(() {
+        _isSpeaking = false;
+        _isSpeechPaused = false;
+      });
+      _speechNotice('Unable to play article audio: $error');
+    }
+  }
+
+  Future<void> _selectSpeechLanguage(LessonSpeechLanguage language) async {
+    if (_isPreparingSpeech) return;
+    if (!language.supportsOnDeviceNarration) {
+      _speechNotice(
+        '${language.label} is listed but not available yet. '
+        'A compatible translation and voice service is required.',
+      );
+      return;
+    }
+    await _stopSpeech();
+    if (!mounted) return;
+    setState(() => _speechLanguage = language);
+    await _startSpeech();
+  }
+
+  String get _shortLanguageLabel {
+    switch (_speechLanguage) {
+      case LessonSpeechLanguage.english:
+        return 'EN';
+      case LessonSpeechLanguage.hindi:
+        return 'HI';
+      case LessonSpeechLanguage.hinglish:
+        return 'HG';
+      case LessonSpeechLanguage.gujarati:
+        return 'GU';
+      case LessonSpeechLanguage.marathi:
+        return 'MR';
+      case LessonSpeechLanguage.bengali:
+        return 'BN';
+      case LessonSpeechLanguage.tamil:
+        return 'TA';
+      case LessonSpeechLanguage.telugu:
+        return 'TE';
+      case LessonSpeechLanguage.malayalam:
+        return 'ML';
+      case LessonSpeechLanguage.bhojpuri:
+        return 'BH';
+      case LessonSpeechLanguage.haryanvi:
+        return 'HR';
+      case LessonSpeechLanguage.arabic:
+        return 'AR';
+      case LessonSpeechLanguage.rajasthani:
+        return 'RJ';
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -108,9 +391,8 @@ class _DetailsBlogPageState extends State<DetailsBlogPage> {
                     ],
                   ),
                 ),
-          bottomNavigationBar: userIsLogin && blogModel?.id != null
-              ? _buildCommentAction()
-              : null,
+          bottomNavigationBar:
+              blogModel != null ? _buildCommentAndSpeechAction() : null,
         ),
       );
 
@@ -412,7 +694,9 @@ class _DetailsBlogPageState extends State<DetailsBlogPage> {
         ]),
       );
 
-  Widget _buildCommentAction() => SafeArea(
+  // Only the existing bottom action row changes. The article, comments and
+  // header are preserved exactly as they were.
+  Widget _buildCommentAndSpeechAction() => SafeArea(
         top: false,
         child: Container(
           padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
@@ -424,25 +708,169 @@ class _DetailsBlogPageState extends State<DetailsBlogPage> {
                 color: Colors.black.withValues(alpha: .04),
                 blurRadius: 16,
                 offset: const Offset(0, -4),
-              )
+              ),
             ],
           ),
-          child: SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: BlogDesign.primary,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+          child: Row(
+            children: [
+              if (userIsLogin && blogModel?.id != null) ...[
+                Expanded(
+                  child: SizedBox(
+                    height: 48,
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        backgroundColor: BlogDesign.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () => BlogWidget.showReplayDialog(
+                          blogModel!.id!, null),
+                      icon: const Icon(Icons.edit_outlined, size: 17),
+                      label: Text(
+                        appText.leaveAComment,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ] else const Spacer(),
+              Semantics(
+                button: true,
+                label: 'Read aloud language: ${_speechLanguage.label}',
+                child: PopupMenuButton<LessonSpeechLanguage>(
+                  enabled: !_isPreparingSpeech,
+                  constraints:
+                      const BoxConstraints(minWidth: 220, maxWidth: 310),
+                  onSelected: (language) {
+                    unawaited(_selectSpeechLanguage(language));
+                  },
+                  itemBuilder: (context) => LessonSpeechLanguage.values
+                      .map((language) => PopupMenuItem<LessonSpeechLanguage>(
+                            value: language,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  language == _speechLanguage
+                                      ? Icons.check_rounded
+                                      : Icons.language_rounded,
+                                  size: 18,
+                                  color: language.supportsOnDeviceNarration
+                                      ? BlogDesign.primary
+                                      : BlogDesign.secondary,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        language.label,
+                                        style: TextStyle(
+                                          color: language.supportsOnDeviceNarration
+                                              ? BlogDesign.navy
+                                              : BlogDesign.secondary,
+                                        ),
+                                      ),
+                                      if (!language.supportsOnDeviceNarration)
+                                        const Text(
+                                          'Not available yet',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: BlogDesign.secondary,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ))
+                      .toList(),
+                  child: Container(
+                    width: 46,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: BlogDesign.paleBlue,
+                      borderRadius: BorderRadius.circular(13),
+                      border: Border.all(color: BlogDesign.border),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.language_rounded,
+                            size: 20, color: BlogDesign.primary),
+                        Text(
+                          _shortLanguageLabel,
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: BlogDesign.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              onPressed: () =>
-                  BlogWidget.showReplayDialog(blogModel!.id!, null),
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              label: Text(appText.leaveAComment,
-                  style: const TextStyle(fontWeight: FontWeight.w700)),
-            ),
+              const SizedBox(width: 8),
+              Semantics(
+                button: true,
+                label: _isPreparingSpeech
+                    ? 'Preparing article audio'
+                    : _isSpeaking
+                        ? 'Pause article narration'
+                        : _isSpeechPaused
+                            ? 'Resume article narration'
+                            : 'Read article aloud',
+                child: SizedBox(
+                  height: 48,
+                  width: 46,
+                  child: IconButton(
+                    onPressed: _isPreparingSpeech
+                        ? null
+                        : () {
+                            if (_isSpeaking) {
+                              unawaited(_pauseSpeech());
+                            } else {
+                              unawaited(_startSpeech());
+                            }
+                          },
+                    style: IconButton.styleFrom(
+                      backgroundColor: BlogDesign.paleBlue,
+                      side: const BorderSide(color: BlogDesign.border),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                    ),
+                    icon: _isPreparingSpeech
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            _isSpeaking
+                                ? Icons.pause_rounded
+                                : Icons.play_arrow_rounded,
+                            size: 26,
+                            color: BlogDesign.primary,
+                          ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );
+
 }

@@ -44,12 +44,12 @@ class DiagnosisIntroBanner extends StatelessWidget {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(22),
+            const Padding(
+              padding: EdgeInsets.all(22),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
                       Icon(Icons.analytics_outlined,
                           size: 19, color: Color(0xFF93CBFF)),
@@ -67,8 +67,8 @@ class DiagnosisIntroBanner extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 15),
-                  const Text(
+                  SizedBox(height: 15),
+                  Text(
                     'Know what you own.\nUnderstand what matters.',
                     style: TextStyle(
                       color: Colors.white,
@@ -77,8 +77,8 @@ class DiagnosisIntroBanner extends StatelessWidget {
                       height: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  const Text(
+                  SizedBox(height: 10),
+                  Text(
                     'Explore structured reviews of portfolio risk, quality and concentration.',
                     style: TextStyle(
                       color: Color(0xFFD5E3F6),
@@ -205,31 +205,24 @@ class DiagnosisPlanCard extends StatelessWidget {
                   const SizedBox(height: 20),
                   const Divider(height: 1, color: DiagnosisPalette.border),
                   const SizedBox(height: 20),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        price,
-                        style: const TextStyle(
-                          color: DiagnosisPalette.ink,
-                          fontSize: 28,
-                          height: 1.0,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 2),
-                        child: Text(
-                          '+ GST',
-                          style: TextStyle(
-                            color: DiagnosisPalette.muted,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    price,
+                    style: const TextStyle(
+                      color: DiagnosisPalette.ink,
+                      fontSize: 21,
+                      height: 1.15,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Final payable amount and eligible student discounts '
+                    'are confirmed during checkout.',
+                    style: TextStyle(
+                      color: DiagnosisPalette.muted,
+                      fontSize: 11,
+                      height: 1.4,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   ...benefits.map(
@@ -321,7 +314,7 @@ class DiagnosisDisclosure extends StatelessWidget {
           Expanded(
             child: Text(
               'Profit Finstock Pvt. Ltd. | SEBI Registered Investment Adviser: INA000020651. '
-              'Prices shown exclude GST. Services and deliverables are subject to applicable terms and disclosures.',
+              'Pricing, GST and eligible discounts are calculated by the secure website. Services and deliverables are subject to applicable terms and disclosures.',
               style: TextStyle(
                 color: DiagnosisPalette.muted,
                 fontSize: 11.5,

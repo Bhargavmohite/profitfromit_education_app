@@ -6,6 +6,7 @@ import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:webinar/app/services/tts_service/lesson_translation_service.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:html/parser.dart';
 import 'package:share_plus/share_plus.dart';
@@ -72,7 +73,15 @@ class _SingleContentPageState extends State<SingleContentPage> {
   bool isSpeakLoading = false;
   bool isPlayingText = false;
 
-  FlutterTts flutterTts = FlutterTts();
+  final FlutterTts flutterTts = FlutterTts();
+  final LessonTranslationService _lessonTranslation = LessonTranslationService();
+  LessonSpeechLanguage _speechLanguage = LessonSpeechLanguage.english;
+  List<String> _speechChunks = <String>[];
+  int _speechChunkIndex = 0;
+  int _resumeOffset = 0;
+  int _chunkBaseOffset = 0;
+  int _speechGeneration = 0;
+  bool _speechPaused = false;
 
   String? previousContentLink;
   SingleContentModel? previousContentData;
@@ -86,6 +95,7 @@ class _SingleContentPageState extends State<SingleContentPage> {
   @override
   void initState() {
     super.initState();
+    _configureNarration();
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       content = (ModalRoute.of(context)!.settings.arguments as List)[0];
@@ -123,6 +133,210 @@ class _SingleContentPageState extends State<SingleContentPage> {
         });
       });
     });
+  }
+
+  void _configureNarration() {
+    flutterTts.setCompletionHandler(() {
+      if (!mounted || !isPlayingText || _speechPaused) return;
+      final generation = _speechGeneration;
+      _speechChunkIndex++;
+      _resumeOffset = 0;
+      if (_speechChunkIndex >= _speechChunks.length) {
+        setState(() {
+          isPlayingText = false;
+          _speechPaused = false;
+        });
+        return;
+      }
+      Future<void>.delayed(Duration.zero, () => _speakChunk(generation));
+    });
+    flutterTts.setProgressHandler(
+        (String text, int startOffset, int endOffset, String word) {
+      if (!mounted || !isPlayingText || _speechPaused) return;
+      if (_speechChunkIndex >= _speechChunks.length) return;
+      final length = _speechChunks[_speechChunkIndex].length;
+      _resumeOffset = (_chunkBaseOffset + endOffset).clamp(0, length).toInt();
+    });
+    flutterTts.setErrorHandler((message) {
+      if (!mounted) return;
+      setState(() {
+        isPlayingText = false;
+        isSpeakLoading = false;
+        _speechPaused = false;
+      });
+      _speechMessage('The voice could not read this lesson: $message');
+    });
+    // flutter_tts expects a zero-argument VoidCallback here.
+    // setErrorHandler accepts a message, but setCancelHandler does not.
+    flutterTts.setCancelHandler(() {
+      // Stopping narration intentionally must not restart it.
+    });
+  }
+
+  void _speechMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+    );
+  }
+
+  String _lessonPlainText() =>
+      (parse(singleContentData?.content ?? '').body?.text ?? '').trim();
+
+  Future<String> _resolveVoiceLocale(LessonSpeechLanguage language) async {
+    final target = language.speechLocale.toLowerCase().replaceAll('_', '-');
+    final languageCode = target.split('-').first;
+    final dynamic available = await flutterTts.getLanguages;
+    if (available is! List) {
+      throw StateError('Unable to check installed text-to-speech voices.');
+    }
+    final supported = available.map((e) => e.toString()).toList();
+    String normalized(String locale) =>
+        locale.toLowerCase().replaceAll('_', '-');
+    String? choice;
+    for (final locale in supported) {
+      if (normalized(locale) == target) {
+        choice = locale;
+        break;
+      }
+    }
+    if (choice == null) {
+      for (final locale in supported) {
+        final code = normalized(locale);
+        if (code == languageCode || code.startsWith('$languageCode-')) {
+          choice = locale;
+          break;
+        }
+      }
+    }
+    if (choice == null) {
+      throw StateError('${language.label} speech is not installed on this device. '
+          'Install the corresponding voice in your phone’s Text-to-Speech settings.');
+    }
+    return choice;
+  }
+
+  Future<void> _stopNarration({bool reset = true}) async {
+    _speechGeneration++;
+    _speechPaused = false;
+    if (mounted) {
+      setState(() {
+        isPlayingText = false;
+        isSpeakLoading = false;
+      });
+    }
+    await flutterTts.stop();
+    if (reset) {
+      _speechChunks = <String>[];
+      _speechChunkIndex = 0;
+      _resumeOffset = 0;
+    }
+  }
+
+  Future<void> _pauseNarration() async {
+    if (!isPlayingText) return;
+    _speechGeneration++;
+    _speechPaused = true;
+    setState(() => isPlayingText = false);
+    await flutterTts.stop();
+  }
+
+  Future<void> _startNarration() async {
+    if (isSpeakLoading || isPlayingText) return;
+    final lesson = _lessonPlainText();
+    if (lesson.isEmpty) {
+      _speechMessage('No text is available for this lesson.');
+      return;
+    }
+
+    final generation = ++_speechGeneration;
+    final continueFromPause = _speechPaused &&
+        _speechChunks.isNotEmpty &&
+        _speechChunkIndex < _speechChunks.length;
+    setState(() {
+      isSpeakLoading = true;
+      _speechPaused = false;
+    });
+    try {
+      final voice = await _resolveVoiceLocale(_speechLanguage);
+      if (!mounted || generation != _speechGeneration) return;
+      await flutterTts.setLanguage(voice);
+      await flutterTts.setSpeechRate(0.48);
+      if (Platform.isIOS) await flutterTts.setSharedInstance(true);
+
+      if (!continueFromPause) {
+        final translated =
+            await _lessonTranslation.prepare(lesson, _speechLanguage);
+        if (!mounted || generation != _speechGeneration) return;
+        _speechChunks = splitAtWordBoundary(translated, 1800);
+        _speechChunkIndex = 0;
+        _resumeOffset = 0;
+      }
+      if (_speechChunks.isEmpty) {
+        throw StateError('No readable text was generated.');
+      }
+      if (!mounted || generation != _speechGeneration) return;
+      setState(() {
+        isSpeakLoading = false;
+        isPlayingText = true;
+      });
+      await _speakChunk(generation);
+    } catch (error) {
+      if (!mounted || generation != _speechGeneration) return;
+      setState(() {
+        isSpeakLoading = false;
+        isPlayingText = false;
+        _speechPaused = false;
+      });
+      _speechMessage('Unable to start ${_speechLanguage.label} narration. $error');
+    }
+  }
+
+  Future<void> _speakChunk(int generation) async {
+    if (!mounted || generation != _speechGeneration || !isPlayingText) return;
+    if (_speechChunkIndex >= _speechChunks.length) return;
+    final full = _speechChunks[_speechChunkIndex];
+    if (_resumeOffset >= full.length) {
+      _speechChunkIndex++;
+      _resumeOffset = 0;
+      if (_speechChunkIndex >= _speechChunks.length) {
+        if (mounted) setState(() => isPlayingText = false);
+        return;
+      }
+      return _speakChunk(generation);
+    }
+    _chunkBaseOffset = _resumeOffset;
+    try {
+      final result = await flutterTts.speak(full.substring(_resumeOffset));
+      if (result != 1 && mounted && generation == _speechGeneration) {
+        throw StateError('The voice engine rejected the text.');
+      }
+    } catch (error) {
+      if (!mounted || generation != _speechGeneration) return;
+      setState(() {
+        isPlayingText = false;
+        _speechPaused = false;
+      });
+      _speechMessage('Unable to play lesson audio: $error');
+    }
+  }
+
+  Future<void> _selectSpeechLanguage(LessonSpeechLanguage language) async {
+    if (isSpeakLoading) return;
+    // Do not silently substitute Hindi for regional languages which the
+    // current translation service cannot actually produce.
+    if (!language.supportsOnDeviceNarration) {
+      _speechMessage(
+        '${language.label} read aloud is not available yet. '
+        'It requires a compatible translation and voice service.',
+      );
+      return;
+    }
+    await _stopNarration();
+    if (!mounted) return;
+    setState(() => _speechLanguage = language);
+    // Selecting a language starts its narration automatically.
+    await _startNarration();
   }
 
   Future getNote() async {
@@ -302,60 +516,137 @@ class _SingleContentPageState extends State<SingleContentPage> {
                   ? Row(
                       children: [
                         Expanded(
-                            child: button(
-                                onTap: () {
-                                  backRoute();
-                                },
-                                width: getSize().width,
-                                height: 52,
-                                text: appText.back,
-                                bgColor: green77(),
-                                textColor: Colors.white)),
-                        space(0, width: 14),
-                        GestureDetector(
-                          onTap: () async {
-                            if (content?.type == 'text_lesson') {
-                              if (isPlayingText) {
-                                flutterTts.pause();
-
-                                setState(() {
-                                  isPlayingText = false;
-                                });
-                              } else {
-                                setState(() {
-                                  isSpeakLoading = true;
-                                });
-
-                                var res = await flutterTts.speak(
-                                    parse(singleContentData?.content ?? '')
-                                            .documentElement
-                                            ?.text ??
-                                        '');
-
-                                setState(() {
-                                  isPlayingText = res == 1;
-                                  isSpeakLoading = false;
-                                });
-                              }
-                            }
-                          },
-                          child: Container(
-                            width: 55,
+                          child: button(
+                            onTap: () async {
+                              await _stopNarration();
+                              if (mounted) backRoute();
+                            },
+                            width: getSize().width,
                             height: 52,
-                            decoration: BoxDecoration(
-                              color: green77(),
-                              borderRadius: borderRadius(),
-                            ),
-                            child: isSpeakLoading
-                                ? loading(color: Colors.white)
-                                : Icon(
-                                    isPlayingText
-                                        ? Icons.pause
-                                        : Icons.play_arrow_rounded,
-                                    color: Colors.white,
-                                  ),
+                            text: appText.back,
+                            bgColor: green77(),
+                            textColor: Colors.white,
                           ),
-                        )
+                        ),
+                        space(0, width: 8),
+                        PopupMenuButton<LessonSpeechLanguage>(
+                          enabled: !isSpeakLoading,
+                          constraints: const BoxConstraints(
+                              minWidth: 220, maxWidth: 290),
+                          onSelected: _selectSpeechLanguage,
+                          itemBuilder: (context) => LessonSpeechLanguage.values
+                              .map((language) => PopupMenuItem(
+                                    value: language,
+                                    child: Row(
+                                      children: [
+                                        if (language == _speechLanguage)
+                                          Icon(Icons.check_rounded,
+                                              color: green77(), size: 19)
+                                        else
+                                          const SizedBox(width: 19),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                language.label,
+                                                style: TextStyle(
+                                                  color: language
+                                                          .supportsOnDeviceNarration
+                                                      ? null
+                                                      : Colors.grey,
+                                                ),
+                                              ),
+                                              if (!language
+                                                  .supportsOnDeviceNarration)
+                                                const Text(
+                                                  'Requires additional support',
+                                                  style: TextStyle(
+                                                    color: Colors.grey,
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ))
+                              .toList(),
+                          child: Semantics(
+                            button: true,
+                            label: 'Choose read aloud language',
+                            child: Container(
+                              width: 132,
+                              height: 52,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: green77()),
+                                borderRadius: borderRadius(),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.language_rounded,
+                                      size: 19, color: green77()),
+                                  const SizedBox(width: 5),
+                                  Expanded(
+                                    child: Text(
+                                      _speechLanguage.label,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          color: green77(),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                  Icon(Icons.arrow_drop_down,
+                                      color: green77(), size: 17),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        space(0, width: 8),
+                        Semantics(
+                          button: true,
+                          label: isPlayingText
+                              ? 'Pause narration'
+                              : (_speechPaused
+                                  ? 'Resume narration'
+                                  : 'Start narration'),
+                          child: GestureDetector(
+                            onTap: isSpeakLoading
+                                ? null
+                                : () async {
+                                    if (isPlayingText) {
+                                      await _pauseNarration();
+                                    } else {
+                                      await _startNarration();
+                                    }
+                                  },
+                            child: Container(
+                              width: 55,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                color: green77(),
+                                borderRadius: borderRadius(),
+                              ),
+                              child: isSpeakLoading
+                                  ? loading(color: Colors.white)
+                                  : Icon(
+                                      isPlayingText
+                                          ? Icons.pause_rounded
+                                          : Icons.play_arrow_rounded,
+                                      color: Colors.white,
+                                    ),
+                            ),
+                          ),
+                        ),
                       ],
                     )
                   : Row(
@@ -1422,9 +1713,9 @@ class _SingleContentPageState extends State<SingleContentPage> {
 
   @override
   void dispose() {
-    if (_playerController != null) {
-      _playerController!.dispose();
-    }
+    _speechGeneration++;
+    flutterTts.stop();
+    _playerController?.dispose();
     super.dispose();
   }
 
@@ -1438,6 +1729,8 @@ class _SingleContentPageState extends State<SingleContentPage> {
 
   void checkNextVideo() {
     if (contentListIndex < contentList.length - 1) {
+      // Clear narration before loading a different lesson.
+      _stopNarration();
       setState(() {
         previousContentLink = contentList[contentListIndex].link;
         contentListIndex++;

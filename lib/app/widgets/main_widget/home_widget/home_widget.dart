@@ -320,99 +320,135 @@ class HomeWidget {
   }
 
   static Future showFinalizeRegister(int userId) async {
-    TextEditingController nameController = TextEditingController();
-    FocusNode nameNode = FocusNode();
+    final TextEditingController nameController = TextEditingController();
+    final FocusNode nameNode = FocusNode();
 
-    TextEditingController referralController = TextEditingController();
-    FocusNode referralNode = FocusNode();
+    final TextEditingController referralController = TextEditingController();
+    final FocusNode referralNode = FocusNode();
 
     bool isLoading = false;
 
-    return await showModalBottomSheet(
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      context: navigatorKey.currentContext!,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  directionality(
-                    child: Container(
-                      margin: EdgeInsets.only(
-                          bottom: MediaQuery.of(navigatorKey.currentContext!)
-                              .viewInsets
-                              .bottom),
-                      width: getSize().width,
-                      padding: padding(vertical: 21),
-                      decoration: const BoxDecoration(
-                          color: Colors.white,
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(30))),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            appText.finalizeYourAccount,
-                            style: style16Bold(),
+    try {
+      return await showModalBottomSheet(
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        context: navigatorKey.currentContext!,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              // The modal bottom sheet manages its own keyboard offset. Using
+              // a Scaffold with its default resize behavior AND adding a
+              // keyboard-bottom margin caused the 25px RenderFlex overflow.
+              return AnimatedPadding(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SingleChildScrollView(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      child: directionality(
+                        child: Container(
+                          width: double.infinity,
+                          padding: padding(vertical: 21),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(30),
+                            ),
                           ),
-                          space(16),
-                          input(nameController, nameNode, appText.yourName,
-                              iconPathLeft: AppAssets.profileSvg,
-                              leftIconSize: 14,
-                              isBorder: true),
-                          space(16),
-                          input(
-                              referralController, referralNode, appText.refCode,
-                              iconPathLeft: AppAssets.ticketSvg,
-                              leftIconSize: 14,
-                              isBorder: true),
-                          space(24),
-                          Center(
-                            child: button(
-                                onTap: () async {
-                                  if (nameController.text.length > 3) {
-                                    setState(() {
-                                      isLoading = true;
-                                    });
-
-                                    bool res = await AuthenticationService
-                                        .registerStep3(
-                                            userId,
-                                            nameController.text.trim(),
-                                            referralController.text.trim());
-
-                                    if (res) {
-                                      backRoute(arguments: res);
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                appText.finalizeYourAccount,
+                                style: style16Bold(),
+                              ),
+                              space(16),
+                              input(
+                                nameController,
+                                nameNode,
+                                appText.yourName,
+                                iconPathLeft: AppAssets.profileSvg,
+                                leftIconSize: 14,
+                                isBorder: true,
+                              ),
+                              space(16),
+                              input(
+                                referralController,
+                                referralNode,
+                                appText.refCode,
+                                iconPathLeft: AppAssets.ticketSvg,
+                                leftIconSize: 14,
+                                isBorder: true,
+                              ),
+                              space(24),
+                              Center(
+                                child: button(
+                                  onTap: () async {
+                                    // Avoid duplicate registration requests.
+                                    if (isLoading ||
+                                        nameController.text.trim().length <=
+                                            3) {
+                                      return;
                                     }
 
-                                    setState(() {
-                                      isLoading = false;
-                                    });
-                                  }
-                                },
-                                width: getSize().width,
-                                height: 52,
-                                text: appText.continue_,
-                                bgColor: green77(),
-                                textColor: Colors.white,
-                                isLoading: isLoading),
+                                    setState(() => isLoading = true);
+                                    bool isClosing = false;
+                                    try {
+                                      final bool res =
+                                          await AuthenticationService
+                                              .registerStep3(
+                                        userId,
+                                        nameController.text.trim(),
+                                        referralController.text.trim(),
+                                      );
+
+                                      if (!context.mounted) return;
+                                      if (res) {
+                                        isClosing = true;
+                                        backRoute(arguments: res);
+                                        return;
+                                      }
+                                    } finally {
+                                      // Avoid rebuilding a sheet that's closing.
+                                      if (context.mounted && !isClosing) {
+                                        setState(() => isLoading = false);
+                                      }
+                                    }
+                                  },
+                                  width: getSize().width,
+                                  height: 52,
+                                  text: appText.continue_,
+                                  bgColor: green77(),
+                                  textColor: Colors.white,
+                                  isLoading: isLoading,
+                                ),
+                              ),
+                              space(24),
+                            ],
                           ),
-                          space(24),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
+                ),
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      nameController.dispose();
+      nameNode.dispose();
+      referralController.dispose();
+      referralNode.dispose();
+    }
   }
 }

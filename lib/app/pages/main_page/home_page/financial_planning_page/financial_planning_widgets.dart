@@ -198,7 +198,7 @@ class FinancialPlanningPlanCard extends StatelessWidget {
                         '₹999',
                         style: TextStyle(
                           color: PlanningPalette.ink,
-                          fontSize: 30,
+                          fontSize: 27,
                           fontWeight: FontWeight.w900,
                           height: 1.0,
                         ),
@@ -216,6 +216,16 @@ class FinancialPlanningPlanCard extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 7),
+                  const Text(
+                    'Final payable amount and eligible discounts are '
+                    'confirmed at checkout.',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      height: 1.4,
+                      color: PlanningPalette.muted,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   const _PlanningBenefit('Full Goal Mapping'),
@@ -318,7 +328,8 @@ class FinancialPlanningDisclosure extends StatelessWidget {
           Expanded(
             child: Text(
               'Profit Finstock Pvt. Ltd. | SEBI Registered Investment Adviser: INA000020651. '
-              'Price excludes GST. Service availability and terms apply.',
+              'Displayed price is indicative and excludes GST. '
+              'The final fee and terms are confirmed during checkout.',
               style: TextStyle(
                 color: PlanningPalette.muted,
                 fontSize: 11.5,
